@@ -30,7 +30,7 @@
                   <option value="black">Black</option>
                 </select>
               </td>
-              <td><button class="ready_btn" id="player1_ready">Ready</button></td>
+              <td><button class="ready_btn" id="player1_ready" onclick="toggleReady(this)">Not Ready</button></td>
             </tr>
             <tr>
               <td id="player2">Khojiakbar</td>
@@ -42,7 +42,7 @@
                   <option value="black">Black</option>
                 </select>
               </td>
-              <td><button class="ready_btn" id="player2_ready">Ready</button></td>
+              <td><button class="ready_btn" id="player2_ready" onclick="toggleReady(this)">Not Ready</button></td>
             </tr>
             <tr>
               <td id="player3">Sam</td>
@@ -54,7 +54,7 @@
                   <option value="black">Black</option>
                 </select>
               </td>
-              <td><button class="ready_btn" id="player3_ready">Ready</button></td>
+              <td><button class="ready_btn" id="player3_ready" onclick="toggleReady(this)">Not Ready</button></td>
             </tr>
             <tr>
               <td id="player4">Ben</td>
@@ -66,11 +66,12 @@
                   <option value="black">Black</option>
                 </select>
               </td>
-              <td><button class="ready_btn" id="player4_ready">Ready</button></td>
+              <td><button class="ready_btn" id="player4_ready" onclick="toggleReady(this)">Not Ready</button></td>
             </tr>
           </tbody>
         </table>
       </div>
     </form>
+    <script src="./js/waiting_room.js"></script>
   </body>
 </html>
