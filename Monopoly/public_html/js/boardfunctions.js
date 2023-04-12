@@ -1,8 +1,14 @@
 
+function displayFunction(){
+    for (var i = 0; i < 16; i++){
+        var id = i.toString(10);
+        displayMessages(id);
+    }
+}
 
 function restartFunction(){
     createOriginalSpaces();
-
+    displayFunction();
 
 }
 
@@ -13,39 +19,40 @@ function createOriginalSpaces() {
         Params: None
         Return: None
 	*/
-
-    nameList = ["Go","Red Park","Red Rest","Red Vill","Jail","Green Park","Green Rest","Green Vill","Free",
-    "Yellow Park", "Yellow Rest", "Yellow Vill", "Go to Jail","Blue Park","Blue Rest","Blue Vill"];
-
-    costList = [0,100,100,120,0,120,120,140,0,200,200,220,0,250,250,300];
-
-    for (var i = 0; i <= 15; i++) {
-        var id = i.toString(10);
-
-        document.getElementById(id).innerText = nameList[i];
-        console.log(i);
-    
-
-
-    let n = nameList[i];
-    let c = costList[i];
-    let data = "name="+n+"&cost="+c;
     
     var xhttp = new XMLHttpRequest();
-    xhttp.open("POST", "/add/space/", true);
+    xhttp.open("POST", "/add/space/create", true);
 
     xhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 
     xhttp.onreadystatechange = () => { // Call a function when the state changes.
-    if (xhttp.readyState === XMLHttpRequest.DONE && xttp.status === 200) {
+    if (xhttp.readyState === XMLHttpRequest.DONE && xhttp.status === 200) {
     // Request finished. Do processing here.
   }
 }
 
     
-    xhttp.send(data);
-    console.log(data);
+    xhttp.send();
+    console.log("start");
 
     
     }
-}
+
+
+    function displayMessages(id) {
+        fetch('/get/spaces/'+id)
+            .then((res) =>{
+                //console.log(res);
+                return res.text()})
+            .then((res) => {
+                console.log(res);
+                var obj = JSON.parse(res);
+                console.log(obj);
+                var text = obj[0].name;
+                text = text + '\n' + obj[0].cost;
+                document.getElementById(id).innerText = text;
+                document.getElementById(id).style.backgroundColor = obj[0].color;
+                        }  
+            )
+        }
+

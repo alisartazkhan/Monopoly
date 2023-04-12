@@ -8,6 +8,7 @@ td {
     font-size: 10px;
     font-family: 'Times New Roman';
     text-align: center;
+    vertical-align: top;
 }
 
 table{

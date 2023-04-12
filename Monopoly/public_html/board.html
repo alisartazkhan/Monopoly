@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-  <meta charset="UTF-8">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>James Harden</title>
     <link rel="stylesheet" type="text/css" href="css/boardstyle.css">
 </head>
-  <body>
+  <body onload="displayFunction()">
     <button onclick="restartFunction()">Start Game </button>
     <ul id = "playerLIst">
         <li>p1</li>
@@ -32,6 +34,9 @@
             <td id = '12' class = 'space'>12 </td><td id = '11' class = 'space'> 11</td><td id = '10' class = 'space'> 10</td><td id = '9' class = 'space'> 9</td><td id = '8' class = 'space'> 8</td>
         </tr> 
     </table>
+    <div id = 'test'>
+
+    </div>
     <script src="js/boardfunctions.js"></script>
   </body>
 </html>
