@@ -8,7 +8,7 @@ const port = 3000;
  * sends new user credentials to the server to store
  */
 function addUser(){
-    // displayInvalidAccount(null);
+    showLoginMessage(null);
     let u = document.getElementById('username').value;
     let ps = document.getElementById('password').value;
     let url = '/add/user/';
@@ -24,8 +24,8 @@ function addUser(){
         response.text().then(data => {
             if(data === 'SAVED SUCCESSFULLY'){
                 alert('Account Created');
-            }else{
-                // displayInvalidAccount("Username/password is unavailable");
+            }else if (data == "username is unavailable"){
+                showLoginMessage(data);
             }
         });
       });
@@ -37,12 +37,12 @@ function addUser(){
 }
 
 function login(){
-    // displayLoginIssue(null);
+    showLoginMessage(null);
     
     let url =  '/account/login/'
     let userName = document.getElementById('username').value;
     let ps = document.getElementById('password').value;
-    console.log(userName + " " +  ps);
+    // console.log(userName + " " +  ps);
     if(userName !=="" && ps !== ""){
          url += userName + '/' + ps + '/';
         try{
@@ -56,10 +56,8 @@ function login(){
     
                         window.location.href = 'http://' + hostname +':3000/waiting_room.html'  ;
                     }else{
-                        console.log("FAILEED");
                         
-                        // displayLoginIssue("Issue logging  in with that info");
-                        alert(xhr.responseText );                       
+                        showLoginMessage(xhr.responseText);
                     }
                 }else{
                     console.log('smth went wrong');
@@ -77,6 +75,6 @@ function login(){
 
 
 // display message for invalid login credentials
-function displayLoginIssue(message){
-    document.getElementById("login-res").innerText = message;
+function showLoginMessage(message){
+    document.getElementById("invalid-login").innerText = message;
 }

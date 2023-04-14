@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const express = require('express');
-const bodyParser = require("body-parser");  
+const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser');
 const crypto = require('crypto');
 
@@ -21,20 +21,20 @@ app.use(express.urlencoded({ extended: true })) // for form data
 // it can run both remotely and locally
 let connection = 'mongodb+srv://khyokubjonov:L5E5Imuo8EWo9rzf@khojiakbardb.pfv0hgx.mongodb.net/?retryWrites=true&w=majority';
 mongoose.connect(connection, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
 }).then(() => console.log('MongoDB connected...'))
-    .catch((err) => console.log(err));
+  .catch((err) => console.log(err));
 var Schema = mongoose.Schema;
 
 // what collections do we need ???
 
 // UserSchema
-var UserSchema = new Schema({ 
-    username: String,
-    // password will be hashed when storing
-    password: String, 
-    // more attributes to be added
+var UserSchema = new Schema({
+  username: String,
+  // password will be hashed when storing
+  password: String,
+  // more attributes to be added
 });
 var User = mongoose.model("UserData", UserSchema);
 app.listen(port, () => {
@@ -44,55 +44,56 @@ app.listen(port, () => {
 
 
 //  (POST) Should add a user to the database. The username and password should be sent as POST parameter(s).
+const myPattern = /(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+}{:;'\"?><,./\[\]\\|\-=]).{5,}/;
 app.post('/add/user/', (req, res) => {
-    console.log("Saving a new user")
-    let newUserToSave = req.body;
-    console.log(req.url);
-    console.log(req.body);
-    let userData = null;
-    try{
-      userData = JSON.parse(newUserToSave);
-    }catch (e){
-      userData = newUserToSave;
+  console.log("Saving a new user")
+  let newUserToSave = req.body;
+  let userData = null;
+  try {
+    userData = JSON.parse(newUserToSave);
+  } catch (e) {
+    userData = newUserToSave;
+  }
+
+  let p3 = User.find({
+    username: userData.username,
+  }).exec();
+  p3.then((results) => {
+    // console.log(results);
+    if (results.length == 0) {
+      let salt = generateSalt();
+      let secureHash = '$' + salt + '$' + cryptoHash(userData.password, salt)
+      let newUser = new User({
+        username: userData.username,
+        password: secureHash
+      });
+      let p1 = newUser.save();
+      p1.then((doc) => {
+        console.log('new user saved.')
+        res.end('SAVED SUCCESSFULLY');
+      });
+      p1.catch((err) => {
+        console.log(err);
+        res.end('FAILED');
+      });
+    } else {
+      res.end("username is unavailable");
     }
-    let p3 = User.find({username: userData.username, 
-                        password: userData.password}).exec();
-    p3.then((results) => {
-      console.log(results);
-      if(results.length ==0){
-        let salt = generateSalt();
-        let secureHash = '$' + salt+ '$' + cryptoHash(userData.password, salt)
-        let newUser = new User({username:userData.username, 
-                                password: secureHash });
-        let p1 = newUser.save();
-        p1.then( (doc) => { 
-          res.end('SAVED SUCCESSFULLY');
-        });
-        p1.catch( (err) => { 
-          console.log(err);
-          res.end('FAIL');
-        });
-      }else{
-        res.end("Invalid credentials");
-      }
-    })
   })
+
+})
 // authenticates the user login 
 app.get('/account/login/:USERNAME/:PASSWORD', (req, res) => {
-    console.log("validating login"); 
-    let u = req.params.USERNAME;
-    let p = req.params.PASSWORD;
-    console.log(u + ' ' + p);
-    console.log(req.body);
-    const regex = /^\$([A-Za-z0-9]+)\$/;
-    let p1 = User.find({username: u}).exec();
-    p1.then((results => {
-      if(results.length >0){
-        let authenticated = false;
-        results.forEach((foundUser) => {
+  let u = req.params.USERNAME;
+  let p = req.params.PASSWORD;
+  const regex = /^\$([A-Za-z0-9]+)\$/;
+  let p1 = User.find({ username: u }).exec();
+  p1.then((results => {
+    if (results.length > 0) {
+      let authenticated = false;
+      results.forEach((foundUser) => {
         const storedPassword = foundUser.password;
         const salt = storedPassword.match(regex)[1]; // extract the salt from the stored password
-        console.log(salt);
         const hashedPassword = cryptoHash(p, salt); // hash the salted password
         const storedPasswordWithoutSalt = storedPassword.replace(regex, ''); // remove the salt from the stored password
         if (hashedPassword === storedPasswordWithoutSalt) {
@@ -100,19 +101,16 @@ app.get('/account/login/:USERNAME/:PASSWORD', (req, res) => {
         }
       });
       if (authenticated) {
-        // user authenticated
-        // res.redirect('/waiting_room.html');
-        res.end('SUCCESS')
+        res.end('SUCCESS');
       } else {
-        // invalid password
-        res.end('LOGIN FAILED DUE TO INCORRECT PASSWORD');
+        res.end('Incorrect username or password');
       }
-        
-      }else{
-        res.end('LOGIN FAILED');
-      }
-    }))
-  });
+
+    } else {
+      res.end('Login failed');
+    }
+  }))
+});
 
 
 /**
@@ -120,7 +118,7 @@ app.get('/account/login/:USERNAME/:PASSWORD', (req, res) => {
  * @param {*} string 
  * @returns new string that resulted from hashing
  */
-function cryptoHash(string, salt){
+function cryptoHash(string, salt) {
   const hash = crypto.createHash('md5').update(salt + string).digest('hex');
   return hash;
 }
@@ -129,7 +127,7 @@ function cryptoHash(string, salt){
  * 
  * @returns generates a salt for user password
  */
-function generateSalt(){
+function generateSalt() {
   const minLength = 10;
   const maxLength = 20;
   const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
