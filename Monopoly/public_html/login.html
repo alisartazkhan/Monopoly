@@ -5,16 +5,17 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="./css/index.css">
+  <script src="/js/client.js"></script>
   <title>Monopoly</title>
 </head>
 <body>
-  <form class="form">
-    <h1><b>Login</b></h1>
-    <input type="text" placeholder="Username" class="form__input" id="username" /> <br>
-    <input type="password" placeholder="Password" class="form__input" id="password"/> <br>
-    <button class="btn">Login</button>
-    <p>If you don't have an account, <a href="./index.html"><b>Sign Up</b></a></p>
-
-  </form>
+  <div class="form">
+      <h1><b>Login</b></h1>
+      <input type="text" placeholder="Username" name='username' class="form_input" id="username" required/> <br>
+      <input type="password" placeholder="Password" name='password' class="form_input" id="password" required/> <br>
+      <button class="btn" onclick="login()" type="submit">Login</button>
+      <div id="invalid-login"></div>
+      <p>If you don't have an account, <a href="./index.html"><b>Sign Up</b></a></p> 
+  </div>
 </body>
 </html>

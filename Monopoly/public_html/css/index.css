@@ -30,7 +30,7 @@ a {
   max-width: 500px;
 }
 
-.form__input, .btn {
+.form_input, .btn {
   display: block;
   margin: 0 auto;
   margin-bottom: 10px;
@@ -52,4 +52,11 @@ input {
   font-size: 16px;
   border-radius: 5px;
   border: none;
+}
+
+/* used to design the invalid login message */
+#invalid-login{
+  color: red;
+  font-size: 18px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
