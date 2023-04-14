@@ -13,10 +13,10 @@ app.use('/local-files', express.static('/'));
 app.use(express.json()) // for json
 app.use(express.urlencoded({ extended: true })) // for form data
 //////////////////////////////////////
-app.use(express.static('C:/Users/17023/Documents/GitHub/Monopoly/Monopoly/public_html', (req, res, next) => {
-    console.log(`Serving static files from ${req.baseUrl}`);
-    next();
-  }));
+// app.use(express.static('C:/Users/17023/Documents/GitHub/Monopoly/Monopoly/public_html', (req, res, next) => {
+//     console.log(`Serving static files from ${req.baseUrl}`);
+//     next();
+//   }));
 
 app.use(bodyParser.urlencoded({ extended: false }));
 
@@ -33,7 +33,7 @@ mongoose.connect(connection, {
 var Schema = mongoose.Schema;
 
 const { receiveMessageOnPort } = require('worker_threads');
-var SpaceSchema = new mongoose.Schema( 
+var SpaceSchema = new Schema( 
   { id: Number,
     name: String,
     //owned: Boolean,
