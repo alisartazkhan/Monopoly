@@ -53,8 +53,7 @@ function login(){
             if (xhr.readyState === XMLHttpRequest.DONE) {
                 if( xhr.status == 200){
                     if(xhr.responseText === "SUCCESS"){
-    
-                        window.location.href = 'http://' + hostname +':3000/waiting_room.html'  ;
+                    window.location.href = `/waiting_room.html?username=${encodeURIComponent(userName)}`;
                     }else{
                         
                         showLoginMessage(xhr.responseText);

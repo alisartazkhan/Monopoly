@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="./css/watiting_room.css">
     <title>Monopoly</title>
   </head>
-  <body>
+  <body onload="getLoggedInUsers()">
     <form class="form">
       <h1><b>Waiting Room</b></h1>
       <div class="waiting-room">
@@ -20,7 +20,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr>
+            <!-- <tr>
               <td id="player1">Sartaz</td>
               <td class="color-picker">
                 <select id="player1_color">
@@ -67,7 +67,7 @@
                 </select>
               </td>
               <td><button class="ready_btn" id="player4_ready" onclick="toggleReady(this)">Not Ready</button></td>
-            </tr>
+            </tr> -->
           </tbody>
         </table>
       </div>

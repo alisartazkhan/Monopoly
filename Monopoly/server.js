@@ -43,6 +43,9 @@ var SpaceSchema = new Schema(
     //visitors: [Number] 
 })
 
+
+var loggedInUsers = [];
+
 const Space = mongoose.model('Space', SpaceSchema);
 
 
@@ -92,16 +95,23 @@ app.get('/get/spaces/:id', (req, res) => {
 // what collections do we need ???
 
 // UserSchema
-var UserSchema = new Schema({
+var UserSchema = new Schema (
+  {
   username: String,
-  // password will be hashed when storing
-  password: String,
-  // more attributes to be added
+  password: String,   // password will be hashed when storing
+  balance: Number,
+  status: String,
+  color: String
 });
 var User = mongoose.model("UserData", UserSchema);
 app.listen(port, () => {
   console.log('Server has started.');
 })
+
+// delete previous users
+// User.deleteMany({})
+//   .then(() => console.log('All Users removed from collection'))
+//   .catch(err => console.error(err));
 
 
 
@@ -127,7 +137,10 @@ app.post('/add/user/', (req, res) => {
       let secureHash = '$' + salt + '$' + cryptoHash(userData.password, salt)
       let newUser = new User({
         username: userData.username,
-        password: secureHash
+        password: secureHash,
+        balance: 0,
+        status: "NR",  // NR = Not Ready   R = Ready
+        color: "Red"
       });
       let p1 = newUser.save();
       p1.then((doc) => {
@@ -144,12 +157,33 @@ app.post('/add/user/', (req, res) => {
   })
 
 })
+
+
+app.get('/set/ready/:id/:status' , (req, res) => {
+  let id = req.params.id;
+  let stat = req.params.status;
+  User.findOne({_id: id}).exec()
+  .then((user) => {
+    console.log(user);
+    user['status'] = stat;
+    return user.save();
+  });
+});
+
+/**
+ * Sends list of users currently logged in
+ */
+app.get('/get/loggedInUsers', (req, res) => {
+    res.end(JSON.stringify(loggedInUsers));
+});
+
+
 // authenticates the user login 
 app.get('/account/login/:USERNAME/:PASSWORD', (req, res) => {
   let u = req.params.USERNAME;
   let p = req.params.PASSWORD;
   const regex = /^\$([A-Za-z0-9]+)\$/;
-  let p1 = User.find({ username: u }).exec();
+  let p1 = User.find({ username: u}).exec();
   p1.then((results => {
     if (results.length > 0) {
       let authenticated = false;
@@ -160,6 +194,16 @@ app.get('/account/login/:USERNAME/:PASSWORD', (req, res) => {
         const storedPasswordWithoutSalt = storedPassword.replace(regex, ''); // remove the salt from the stored password
         if (hashedPassword === storedPasswordWithoutSalt) {
           authenticated = true;
+          let p2 = User.findOne({username: u, password: storedPassword}).exec();
+          p2.then((results) => {
+            console.log("Results: " + results); // setting user status to not ready when they log in
+            let userObj = results;
+            console.log(userObj);
+            userObj['status'] = 'NR';  
+            if (!(userObj in loggedInUsers)){
+            loggedInUsers.push(userObj); 
+            }
+          });
         }
       });
       if (authenticated) {
