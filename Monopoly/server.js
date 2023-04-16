@@ -12,11 +12,7 @@ app.use(express.static('public_html'))
 app.use('/local-files', express.static('/'));
 app.use(express.json()) // for json
 app.use(express.urlencoded({ extended: true })) // for form data
-//////////////////////////////////////
-// app.use(express.static('C:/Users/17023/Documents/GitHub/Monopoly/Monopoly/public_html', (req, res, next) => {
-//     console.log(`Serving static files from ${req.baseUrl}`);
-//     next();
-//   }));
+
 
 app.use(bodyParser.urlencoded({ extended: false }));
 
@@ -30,20 +26,51 @@ mongoose.connect(connection, {
   useUnifiedTopology: true,
 }).then(() => console.log('MongoDB connected...'))
   .catch((err) => console.log(err));
+
 var Schema = mongoose.Schema;
 
-const { receiveMessageOnPort } = require('worker_threads');
-var SpaceSchema = new Schema( 
-  { id: Number,
-    name: String,
-    //owned: Boolean,
-    //owner: String,
-    cost: Number,
-    color: String,
-    //visitors: [Number] 
-})
 
-const Space = mongoose.model('Space', SpaceSchema);
+var BoardSchema = new Schema({
+  boardList: [Number],  // id values of cards
+  numberOfPlayers: Number,
+  players: [Number]    // id values of users
+});
+const Board = mongoose.model('Board', BoardSchema);
+
+
+var CardSchema = new Schema({ 
+  id: Number,
+  name: String,
+  isPurchased: Boolean,
+  ownerID: String,  // we should try putting id object value of User object as ID
+  price: Number,
+  color: String,
+  visitors: [Number], // list of User id values currently on the card
+  hasSet: Boolean,    // if owner purchased the all the cards in the set
+  otherCardsInSet: [Number],  // id vals of other Cards
+  numberOfHouses: Number
+});
+const Card = mongoose.model('Card', CardSchema);
+
+
+// UserSchema
+var UserSchema = new Schema({
+  id: Number,
+  username: String,
+  password: String, // password will be hashed when storing
+  balance: Number,
+  color: String,
+  status: String,   // ready or not ready
+  listOfCardsOwned: [Number],    // list of id values of cards
+  numberOfHouses: Number,
+});
+var User = mongoose.model("UserData", UserSchema);
+
+
+
+app.listen(port, () => {
+  console.log('Server has started.');
+})
 
 
 Space.deleteMany({})
@@ -51,58 +78,45 @@ Space.deleteMany({})
   .catch(err => console.error(err));
 
 
-app.post("/add/space/create", (req,res) => {
+// app.post("/add/space/create", (req,res) => {
 
-    nameList = ["Go","NV Park","NV Rest","NV Villa","Jail","UT Park","UT Rest","UT Villa","Free",
-    "CA Park", "CA Rest", "CA Villa", "Go to Jail","AZ Park","AZ Rest","AZ Villa"];
-    colorList =["Grey","Blue","Blue","Blue","Grey","Red","Red","Red","Grey","Yellow","Yellow","Yellow","Grey"
-    ,"Green","Green","Green"]
-    costList = [0,100,100,120,0,120,120,140,0,200,200,220,0,250,250,300];
+//     nameList = ["Go","NV Park","NV Rest","NV Villa","Jail","UT Park","UT Rest","UT Villa","Free",
+//     "CA Park", "CA Rest", "CA Villa", "Go to Jail","AZ Park","AZ Rest","AZ Villa"];
+//     colorList =["Grey","Blue","Blue","Blue","Grey","Red","Red","Red","Grey","Yellow","Yellow","Yellow","Grey"
+//     ,"Green","Green","Green"]
+//     costList = [0,100,100,120,0,120,120,140,0,200,200,220,0,250,250,300];
 
-    for (var i = 0; i <= 15; i++) {
-        var id = i.toString(10);
-    //console.log("hi")
-    console.log(req.body)
-    var testItem1 = new Space( { 
-      id: i,
-      name: nameList[i],
-      cost: costList[i],
-      color: colorList[i]});
-    let p = testItem1.save();
-    // User.updateOne({username: req.params.username},  {$push: {listings: testItem1}}).exec();
-    //console.log(User.findOne({ username: 'd' }).exec());
-    }
-})
+//     for (var i = 0; i <= 15; i++) {
+//         var id = i.toString(10);
+//     //console.log("hi")
+//     console.log(req.body)
+//     var testItem1 = new Space( { 
+//       id: i,
+//       name: nameList[i],
+//       cost: costList[i],
+//       color: colorList[i]});
+//     let p = testItem1.save();
+//     // User.updateOne({username: req.params.username},  {$push: {listings: testItem1}}).exec();
+//     //console.log(User.findOne({ username: 'd' }).exec());
+//     }
+// })
 
 
-app.get('/get/spaces/:id', (req, res) => {
-  let p1 = Space.find({id:req.params.id}).exec();
-    p1.then( (results) => {
-      res.end(JSON.stringify(results));
-      //console.log(resultString)
-    });
-    p1.catch( (error) => {
-      console.log(error);
-      res.end("FAIL")
-    })
-  });
+// app.get('/get/spaces/:id', (req, res) => {
+//   let p1 = Space.find({id:req.params.id}).exec();
+//     p1.then( (results) => {
+//       res.end(JSON.stringify(results));
+//       //console.log(resultString)
+//     });
+//     p1.catch( (error) => {
+//       console.log(error);
+//       res.end("FAIL")
+//     })
+//   });
 
 
 
 // what collections do we need ???
-
-// UserSchema
-var UserSchema = new Schema({
-  username: String,
-  // password will be hashed when storing
-  password: String,
-  // more attributes to be added
-});
-var User = mongoose.model("UserData", UserSchema);
-app.listen(port, () => {
-  console.log('Server has started.');
-})
-
 
 
 //  (POST) Should add a user to the database. The username and password should be sent as POST parameter(s).
