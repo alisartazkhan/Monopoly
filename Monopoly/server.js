@@ -34,7 +34,7 @@ var SpaceSchema = new Schema(
     color: String,
     //visitors: [Number] 
 })
-
+const Space = mongoose.model('Space', SpaceSchema);
 var BoardSchema = new Schema({
   boardState: [Number],  // id values of players and where they are on the board. Write -1 for cards w no player  [-1,1,-1,2,-1,3,-1,4]
   numberOfPlayers: Number,
