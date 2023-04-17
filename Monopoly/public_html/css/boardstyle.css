@@ -136,9 +136,12 @@ p.balance{
     background-color: blue;
     color: white;
     margin:0px;
-    padding: 4px 0;
+    padding: 20px 0;
   }
   
+  .card p {
+    font-size: ;
+  }
   .popup.visible {
     display: block;
   }
