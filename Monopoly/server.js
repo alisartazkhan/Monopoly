@@ -18,37 +18,37 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 // database to store user data & game status
 
-// this is the link to my mongodb cloud database
-// it can run both remotely and locally
-let connection = 'mongodb+srv://khyokubjonov:L5E5Imuo8EWo9rzf@khojiakbardb.pfv0hgx.mongodb.net/?retryWrites=true&w=majority';
-mongoose.connect(connection, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-}).then(() => console.log('MongoDB connected...'))
-  .catch((err) => console.log(err));
+// connecting to the mongoDB database
+const connection_string = 'mongodb://127.0.0.1/Monopoly';
+mongoose.connect(connection_string, { useNewUrlParser: true });
+mongoose.connection.on('error', () => {
+  console.log('There was a problem connecting to mongoDB');
+});
 
 var Schema = mongoose.Schema;
 
 
 var BoardSchema = new Schema({
-  boardList: [Number],  // id values of cards
+  boardState: [Number],  // id values of cards. Index no. corresponds to id val
   numberOfPlayers: Number,
-  players: [Number]    // id values of users
+  players: [Number]     // id values of users
 });
 const Board = mongoose.model('Board', BoardSchema);
 
 
 var CardSchema = new Schema({ 
-  id: Number,
-  name: String,
-  isPurchased: Boolean,
-  ownerID: String,  // we should try putting id object value of User object as ID
-  price: Number,
+  id: Number,  // index in board list on client side
   color: String,
-  visitors: [Number], // list of User id values currently on the card
+  name: String,
+  price: Number,
+  isPurchased: Boolean,
+  ownerID: String,    // id val of User Object
   hasSet: Boolean,    // if owner purchased the all the cards in the set
-  otherCardsInSet: [Number],  // id vals of other Cards
-  numberOfHouses: Number
+  rent: Number,
+  visitors: [Number], // list of User id values currently on the card
+  otherCardsInSet: [Number],  // id vals of other Cards in set
+  numberOfHouses: Number, 
+  houseRentMultiplier: Number   // Rent = Rent + noOfHouses*houseRentMultiplier
 });
 const Card = mongoose.model('Card', CardSchema);
 
@@ -118,6 +118,65 @@ Space.deleteMany({})
 
 // what collections do we need ???
 
+app.get('', (req, res) => {
+  res.end()
+});
+
+
+app.post('/add/card/', (res, req) => {
+
+});
+
+
+app.get('/get/boardState', (req, res) => {
+  Board.findOne().exec()
+    .then((board) => {
+      if (board) {
+        res.end(JSON.stringify(board.boardState));
+      } else {
+        res.status(404).json({ error: 'No board found' });
+      }
+    })
+    .catch((error) => { 
+      console.log(error);
+      res.status(500).json({ error: 'Internal server error' });
+    });
+});
+
+app.get('/get/numberOfPlayers', (req, res) => {
+  Board.findOne().exec()
+    .then((board) => {
+      if (board) {
+        res.end(JSON.stringify(board.numberOfPlayers));
+      } else {
+        res.status(404).json({ error: 'No board found' });
+      }
+    })
+    .catch((error) => { 
+      console.log(error);
+      res.status(500).json({ error: 'Internal server error' });
+    });
+});
+
+// CHECK IF THIS WORKs
+app.post('/add/card', (req, res) => {
+  var cardObj = JSON.parse(req.body);
+  var newCard = new Card(cardObj);
+  newCard.save();
+});
+
+
+// CHECK IF THIS WORKs
+app.get('/get/card/:index', (req, res) => {
+  var index = req.params.index;
+  Card.findOne({id: index}).exec()
+  .then((card) => {
+    res.end(JSON.stringify(card));
+  })
+  .catch((error) => {
+    res.end("ERROR: get card using index")
+  });
+});
 
 //  (POST) Should add a user to the database. The username and password should be sent as POST parameter(s).
 const myPattern = /(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+}{:;'\"?><,./\[\]\\|\-=]).{5,}/;
