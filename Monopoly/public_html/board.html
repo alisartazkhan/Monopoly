@@ -8,7 +8,8 @@
     <link rel="stylesheet" type="text/css" href="css/boardstyle.css">
 </head>
   <body onload="displayFunction()">
-    <button onclick="restartFunction()">Start Game </button>
+    <div class="board">
+      <button onclick="restartFunction()">Start Game </button>
     <ul id = "playerLIst">
         <li>p1</li>
         <li>p2</li>
@@ -36,6 +37,106 @@
     </table>
     <div id = 'test'>
 
+    </div>
+    </div>
+    
+
+    <!-- Dsiplays player information -->
+    <div class="container">
+      <div class="player-info" id="red-player">
+        <h2>Khojiakbar</h2>
+        <p class="balance"> <span class="dollar-sign">$</span>100</p>
+        <p>Properties: Panton Place</p>
+      </div>
+      <div class="player-info" id="green-player">
+        <h2>Ali</h2>
+        <p class="balance"><span class="dollar-sign">$</span>200</p>
+        <p>Properties: Queens Ave., Faulkner ST</p>
+      </div>
+      <div class="player-info" id="blue-player">
+        <h2>Sam</h2>
+        <p class="balance"><span class="dollar-sign">$</span>150</p>
+        <p>Properties: Pipers Lane, Oaklea Ave</p>
+      </div>
+      <div class="player-info" id="brown-player">
+        <h2>Ben</h2>
+        <p class="balance"><span class="dollar-sign">$</span>75</p>
+        <p>Properties: Linden Grove, Walket ST</p>
+      </div>
+    </div>
+    </div>
+    <!-- dispays all properties -->
+    <button id="info-button">Show Properties</button>
+    <div class="popup" id="info-popup">
+        <h2>All Properties</h2>
+        <div class="card-list">
+          <div class="card">
+            <h3>Queens Ave.</h3>
+            <p>Rent $200</p>
+            <p>With 1 house  $200</p>
+            <p>With 2 houses $600</p>
+            <p>With 3 houses $1000</p>
+            <p>With Hotel $2000</p>
+          </div>
+          <div class="card">
+            <h3>BoardWalk</h3>
+            <p>Rent $200</p>
+            <p>With 1 house  $200</p>
+            <p>With 2 houses $600</p>
+            <p>With 3 houses $1000</p>
+            <p>With Hotel $2000</p>
+          </div>
+          <div class="card">
+            <h3>Faulkner ST</h3>
+            <p>Rent $200</p>
+            <p>With 1 house  $200</p>
+            <p>With 2 houses $600</p>
+            <p>With 3 houses $1000</p>
+            <p>With Hotel $2000</p>
+          </div>
+          <div class="card">
+            <h3>Walket ST</h3>
+            <p>Rent $200</p>
+            <p>With 1 house  $200</p>
+            <p>With 2 houses $600</p>
+            <p>With 3 houses $1000</p>
+            <p>With Hotel $2000</p>
+          </div>
+          <div class="card">
+            <h3>BoardWalk</h3>
+            <p>Rent $200</p>
+            <p>With 1 house  $200</p>
+            <p>With 2 houses $600</p>
+            <p>With 3 houses $1000</p>
+            <p>With Hotel $2000</p>
+          </div>
+          <div class="card">
+            <h3>BoardWalk</h3>
+            <p>Rent $200</p>
+            <p>With 1 house  $200</p>
+            <p>With 2 houses $600</p>
+            <p>With 3 houses $1000</p>
+            <p>With Hotel $2000</p>
+          </div>
+          <div class="card">
+            <h3>BoardWalk</h3>
+            <p>Rent $200</p>
+            <p>With 1 house  $200</p>
+            <p>With 2 houses $600</p>
+            <p>With 3 houses $1000</p>
+            <p>With Hotel $2000</p>
+          </div>
+          <div class="card">
+            <h3>BoardWalk</h3>
+            <p>Rent $200</p>
+            <p>With 1 house  $200</p>
+            <p>With 2 houses $600</p>
+            <p>With 3 houses $1000</p>
+            <p>With Hotel $2000</p>
+          </div>
+        </div>
+        
+        <div class="close-button">&times;</div>
     </div>
     <script src="js/boardfunctions.js"></script>
   </body>

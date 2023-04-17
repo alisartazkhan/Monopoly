@@ -21,18 +21,17 @@ app.use(express.urlencoded({ extended: true })) // for form data
 app.use(bodyParser.urlencoded({ extended: false }));
 
 // database to store user data & game status
+//connect to mongodb server, specify database (if doesn't exist, creates it)
+const connection_string = 'mongodb://127.0.0.1/Monopoly';
 
-// this is the link to my mongodb cloud database
-// it can run both remotely and locally
-let connection = 'mongodb+srv://khyokubjonov:L5E5Imuo8EWo9rzf@khojiakbardb.pfv0hgx.mongodb.net/?retryWrites=true&w=majority';
-mongoose.connect(connection, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-}).then(() => console.log('MongoDB connected...'))
-  .catch((err) => console.log(err));
-var Schema = mongoose.Schema;
+//Connect to mongoDB server
+mongoose.connect(connection_string, { useNewUrlParser: true });
+mongoose.connection.on('error', () => {
+  console.log('There was a problem connecting to mongoDB');
+});
 
 const { receiveMessageOnPort } = require('worker_threads');
+var Schema = mongoose.Schema;
 var SpaceSchema = new Schema( 
   { id: Number,
     name: String,
