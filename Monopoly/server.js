@@ -16,17 +16,24 @@ app.use(express.urlencoded({ extended: true })) // for form data
 
 app.use(bodyParser.urlencoded({ extended: false }));
 
-// database to store user data & game status
-
-// connecting to the mongoDB database
-const connection_string = 'mongodb://127.0.0.1/Monopoly';
+//Connect to mongoDB serverconst 
+connection_string = 'mongodb://127.0.0.1/Monopoly';
 mongoose.connect(connection_string, { useNewUrlParser: true });
 mongoose.connection.on('error', () => {
   console.log('There was a problem connecting to mongoDB');
 });
 
+const { receiveMessageOnPort } = require('worker_threads');
 var Schema = mongoose.Schema;
-
+var SpaceSchema = new Schema( 
+  { id: Number,
+    name: String,
+    //owned: Boolean,
+    //owner: String,
+    cost: Number,
+    color: String,
+    //visitors: [Number] 
+})
 
 var BoardSchema = new Schema({
   boardState: [Number],  // id values of cards. Index no. corresponds to id val
@@ -260,7 +267,7 @@ function cryptoHash(string, salt) {
 
 /**
  * 
- * @returns generates a salt for user password
+ * @returns generates a salt for   a user password
  */
 function generateSalt() {
   const minLength = 10;

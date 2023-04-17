@@ -56,3 +56,18 @@ function createOriginalSpaces() {
             )
         }
 
+
+// displays property information
+const infoButton = document.querySelector('#info-button');
+const infoPopup = document.querySelector('#info-popup');
+const closeButton = document.querySelector('.close-button');
+let isPopupVisible = false; // Keep track of popup visibility state
+
+function togglePopup() {
+    isPopupVisible = !isPopupVisible; // Toggle the visibility state
+    infoPopup.classList.toggle('visible', isPopupVisible); // Toggle the 'visible' class based on state
+}
+
+infoButton.addEventListener('click', togglePopup);
+closeButton.addEventListener('click', togglePopup);
+
