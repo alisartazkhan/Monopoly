@@ -29,7 +29,7 @@ var Schema = mongoose.Schema;
 
 
 var BoardSchema = new Schema({
-  boardState: [Number],  // id values of cards. Index no. corresponds to id val
+  boardState: [Number],  // id values of players and where they are on the board. Write -1 for cards w no player
   numberOfPlayers: Number,
   players: [Number]     // id values of users
 });
@@ -59,6 +59,7 @@ var UserSchema = new Schema({
   username: String,
   password: String, // password will be hashed when storing
   balance: Number,
+  position: Number,
   color: String,
   status: String,   // ready or not ready
   listOfCardsOwned: [Number],    // list of id values of cards
