@@ -253,6 +253,9 @@ const user_colors = ['red', 'blue', 'green', 'yellow'];
 //  (POST) Should add a user to the database. The username and password should be sent as POST parameter(s).
 const myPattern = /(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+}{:;'\"?><,./\[\]\\|\-=]).{5,}/;
 app.post('/add/user/', (req, res) => {
+  if (user_Id > 3){
+    res.end("max limit reached");
+  }
   console.log("Saving a new user")
   let newUserToSave = req.body;
   let userData = null;
