@@ -1,82 +1,68 @@
 body {
-    margin: 0;
-    background-color: rgba(43, 186, 43, 0.524);
-  }
-  
-  h1, .ready_btn {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  }
+  margin: 0;
+  background-color: rgba(43, 186, 43, 0.524);
+}
+
+h1 {font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;}
+
+p {font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;}
+
+div span {
+  display: inline-block;
+  padding-bottom: 10px;
+}
+
+.form {
+  text-align: center;
+  background-color: whitesmoke;
+  border-radius: 25px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  max-width: 500px;
+  padding-bottom: 20px;
+}
 
 
-  .form {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-  }
-  
-  .waiting-room {
-    text-align: center;
-  }
-  
-  table {
-    border-collapse: collapse;
-    width: 100%;
-    margin: 20px auto;
-    border: 1px solid #ccc;
-    box-shadow: 0px 0px 100px rgba(0, 0, 0, 0.1);
-    border-radius:25px;
-  }
-  
-  th, td {
-    padding: 10px;
-    text-align: center;
-    border: 1px solid #ccc;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  }
-  
-  th {
-    background-color: #eee;
-    font-weight: bold;
-  }
-  
-  tr:nth-child(even) {
-    background-color: #f2f2f2;
-  }
-  
-  .color-picker {
-    position: relative;
-    width: 50px;
-  }
-  
-  select {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    padding: 5px;
-    border: none;
-    background-color: transparent;
-    cursor: pointer;
-  }
-  
-  select:focus {
-    outline: none;
-  }
-  
-  select option {
-    background-color: #fff;
-  }
-  
-  input[type="color"] {
-    opacity: 0;
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    cursor: pointer;
-  }
-  
+.btn {
+  display: block;
+  margin: 0 auto;
+  margin-bottom: 10px;
+}
+
+
+.btn {
+  background-color: #4CAF50;
+  font-weight: bold;
+  color: white;
+  padding: 8px 16px;
+  font-size: 16px;
+  border-radius: 5px;
+  border: none;
+}
+
+.loader {
+  display: None;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: whitesmoke;
+  border-radius: 15px;
+  width: 10%;
+  max-width: 100px;
+  margin: 0 auto;
+  padding: 20px;
+  border: 8px solid #f3f3f3; /* Light grey */
+  border-top: 8px solid #4bb23f; /* Blue */
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

@@ -16,7 +16,7 @@ app.use(express.urlencoded({ extended: true })) // for form data
 
 app.use(bodyParser.urlencoded({ extended: false }));
 
-//Connect to mongoDB serverconst 
+//Connect to mongoDB server  
 connection_string = 'mongodb://127.0.0.1/Monopoly';
 mongoose.connect(connection_string, { useNewUrlParser: true });
 mongoose.connection.on('error', () => {
@@ -25,16 +25,8 @@ mongoose.connection.on('error', () => {
 
 const { receiveMessageOnPort } = require('worker_threads');
 var Schema = mongoose.Schema;
-var SpaceSchema = new Schema( 
-  { id: Number,
-    name: String,
-    //owned: Boolean,
-    //owner: String,
-    cost: Number,
-    color: String,
-    //visitors: [Number] 
-})
-const Space = mongoose.model('Space', SpaceSchema);
+
+
 var BoardSchema = new Schema({
   boardState: [Number],  // id values of players and where they are on the board. Write -1 for cards w no player  [-1,1,-1,2,-1,3,-1,4]
   numberOfPlayers: Number,
@@ -74,16 +66,14 @@ var UserSchema = new Schema({
 });
 var User = mongoose.model("UserData", UserSchema);
 
-
+// delete all documents from the 'User' collection
+User.deleteMany({})
+.catch((err) => console.log('Error deleting users:', err));
 
 app.listen(port, () => {
   console.log('Server has started.');
 })
 
-
-Space.deleteMany({})
-  .then(() => console.log('All documents removed from collection'))
-  .catch(err => console.error(err));
 
 
 // app.post("/add/space/create", (req,res) => {
@@ -186,6 +176,80 @@ app.get('/get/card/:index', (req, res) => {
   });
 });
 
+
+/**
+ * Checks if every user is ready
+ */
+app.get('/isReady/', (req, res) => {
+  let isReady = 'true';
+
+  User.find().exec()
+  .then((results) => {
+
+    console.log("All Users " + results);
+
+    for (let i=0; i<results.length; i++){
+      // console.log("iterating");
+
+      User.findOne({id: i}).exec()
+      .then((user) => {
+        // console.log(user);
+        console.log(i + ": " + user.status);
+        if (user.status === "NR"){
+          console.log(user.id + " is NR");
+          isReady = 'false';
+        }
+        if (i === results.length-1) {
+          res.end(isReady);
+        }
+      }).catch((error) => {
+        res.end("ERROR: get card using index")
+      });
+    }
+  });
+  
+});
+
+
+/**
+ * Set user to ready
+ */
+app.get('/set/ready/:username', (req, res) => {
+  let u = req.params.username;
+  User.findOne({username: u}).exec()
+  .then((user) => {
+    if (user.status === "NR"){
+      user['status'] = 'R';
+      user.save();
+      console.log(user);
+      res.end("Status Change: Success");
+    }
+  }).catch((error) => {
+    res.end("ERROR: Changing Status")
+  });
+});
+  
+
+/**
+ * Sends usercolor back to the client
+ */
+app.get('/get/user_color/:username', (req, res) => {
+  let u = req.params.username;
+  console.log(u);
+  User.findOne({username: u}).exec()
+  .then((user) => {
+    console.log(user);
+    res.end(user.color);
+  })
+  .catch((error) => {
+    res.end("ERROR: get card using index")
+  });
+});
+
+var user_Id = 0;   // users start from 0 index
+const user_colors = ['red', 'blue', 'green', 'yellow'];
+
+
 //  (POST) Should add a user to the database. The username and password should be sent as POST parameter(s).
 const myPattern = /(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+}{:;'\"?><,./\[\]\\|\-=]).{5,}/;
 app.post('/add/user/', (req, res) => {
@@ -207,13 +271,21 @@ app.post('/add/user/', (req, res) => {
       let salt = generateSalt();
       let secureHash = '$' + salt + '$' + cryptoHash(userData.password, salt)
       let newUser = new User({
+        id: user_Id,
         username: userData.username,
-        password: secureHash
+        password: secureHash,
+        balace: 1000,
+        position: 0,
+        color: user_colors[user_Id % user_colors.length],
+        status: "NR",
+        listOfCardsOwned: [],
+        numberOfHouses: 0
       });
       let p1 = newUser.save();
       p1.then((doc) => {
         console.log('new user saved.')
         res.end('SAVED SUCCESSFULLY');
+        user_Id += 1;
       });
       p1.catch((err) => {
         console.log(err);
@@ -241,6 +313,8 @@ app.get('/account/login/:USERNAME/:PASSWORD', (req, res) => {
         const storedPasswordWithoutSalt = storedPassword.replace(regex, ''); // remove the salt from the stored password
         if (hashedPassword === storedPasswordWithoutSalt) {
           authenticated = true;
+          foundUser['status'] = "NR";
+          foundUser.save();
         }
       });
       if (authenticated) {
