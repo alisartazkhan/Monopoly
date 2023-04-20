@@ -38,23 +38,23 @@ function createOriginalSpaces() {
     
     }
 
-// commented out this code since it kept throwing an error
-function displayMessages(id) {
-    // fetch('/get/spaces/'+id)
-    //     .then((res) =>{
-    //         //console.log(res);
-    //         return res.text()})
-    //     .then((res) => {
-    //         console.log(res);
-    //         var obj = JSON.parse(res);
-    //         console.log(obj);
-    //         var text = obj[0].name;
-    //         text = text + '\n' + obj[0].cost;
-    //         document.getElementById(id).innerText = text;
-    //         document.getElementById(id).style.backgroundColor = obj[0].color;
-    //                 }  
-    //     )
-    }
+
+    function displayMessages(id) {
+        fetch('/get/spaces/'+id)
+            .then((res) =>{
+                //console.log(res);
+                return res.text()})
+            .then((res) => {
+                console.log(res);
+                var obj = JSON.parse(res);
+                console.log(obj);
+                var text = obj[0].name;
+                text = text + '\n' + obj[0].cost;
+                document.getElementById(id).innerText = text;
+                document.getElementById(id).style.backgroundColor = obj[0].color;
+                        }  
+            )
+        }
 
 
 // displays property information
@@ -70,6 +70,7 @@ function togglePopup() {
 
 infoButton.addEventListener('click', togglePopup);
 closeButton.addEventListener('click', togglePopup);
+
 
 
 /**
