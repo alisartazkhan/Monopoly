@@ -40,26 +40,26 @@ function createOriginalSpaces() {
 
 
 function displayMessages(id) {
-    // fetch('/get/spaces/'+id)
-    //     .then((res) =>{
-    //         //console.log(res);
-    //         return res.text()})
-    //     .then((res) => {
-    //         console.log(res);
-    //         var obj = JSON.parse(res);
-    //         console.log(obj);
-    //         var text = obj[0].name;
-    //         text = text + '\n' + obj[0].cost;
-    //         document.getElementById(id).innerText = text;
-    //         document.getElementById(id).style.backgroundColor = obj[0].color;
-    //                 }  
-    //     )
+    fetch('/get/spaces/'+id)
+        .then((res) =>{
+            //console.log(res);
+            return res.text()})
+        .then((res) => {
+            console.log(res);
+            var obj = JSON.parse(res);
+            console.log(obj);
+            var text = obj[0].name;
+            text = text + '\n' + obj[0].cost;
+            document.getElementById(id).innerText = text;
+            document.getElementById(id).style.backgroundColor = obj[0].color;
+                    }  
+        )
     }
 
 
 // displays property information
-const infoButton = document.querySelector('#info-button');
-const infoPopup = document.querySelector('#info-popup');
+const infoButton = document.querySelector('info-button');
+const infoPopup = document.querySelector('info-popup');
 const closeButton = document.querySelector('.close-button');
 let isPopupVisible = false; // Keep track of popup visibility state
 
@@ -68,8 +68,8 @@ function togglePopup() {
     infoPopup.classList.toggle('visible', isPopupVisible); // Toggle the 'visible' class based on state
 }
 
-// infoButton.addEventListener('click', togglePopup);
-// closeButton.addEventListener('click', togglePopup);
+infoButton.addEventListener('click', togglePopup);
+closeButton.addEventListener('click', togglePopup);
 
 
 /**
@@ -127,7 +127,7 @@ function getPlayers(){
 
 }
 
-getPlayers();
+// getPlayers();
 
 
 function getCurrentUrlSearchParams(){
