@@ -246,6 +246,22 @@ app.get('/get/user_color/:username', (req, res) => {
   });
 });
 
+
+/**
+ * Sends a list of players to the clients
+ */
+app.get('/get/players/', (req, res) => {
+  console.log('Sending all players');
+  let p1 = User.find({}).exec()
+  p1.then( (results) => { 
+    res.end( JSON.stringify(results, undefined, 2) );
+  });
+  p1.catch( (error) => {
+    console.log(error);
+    res.end('FAIL');
+  });
+});
+
 var user_Id = 0;   // users start from 0 index
 const user_colors = ['red', 'blue', 'green', 'yellow'];
 
