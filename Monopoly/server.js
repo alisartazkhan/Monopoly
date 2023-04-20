@@ -68,6 +68,7 @@ var User = mongoose.model("UserData", UserSchema);
 
 // delete all documents from the 'User' collection
 User.deleteMany({})
+.then(() => console.log('Deleted all user data'))
 .catch((err) => console.log('Error deleting users:', err));
 
 app.listen(port, () => {

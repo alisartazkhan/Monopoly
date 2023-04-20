@@ -76,6 +76,7 @@ function togglePopup() {
  * Updates the board.html with player information from the server
  */
 function getPlayers(){
+    console.log(getCurrentUrlSearchParams());
     let url = '/get/players';
     const xhr = new XMLHttpRequest();
     xhr.open('GET', url);
@@ -86,18 +87,38 @@ function getPlayers(){
                 let items = JSON.parse(xhr.responseText);
                 document.getElementById('players').innerHTML = '';
                 const outputArea = document.getElementById('players');
+                let searchParams = getCurrentUrlSearchParams();
+                let currentPlayerName = searchParams.get('username');
+                console.log(items);
+                let currentPlayer = findUserName(items, currentPlayerName)[0];
+                console.log(currentPlayer);
 
-                items.forEach(item => {
-                    const div = document.createElement('div');
+                // puts the current player at the top
+                const div = document.createElement('div');
                     div.classList.add("player-info");
-                    div.id = item.color + '-player';
+                    div.id = currentPlayer.color + '-player';
                     div.innerHTML = `
-                    <h2>${item.username}</h2>
+                    <h2>${currentPlayer.username}</h2>
                     <p class="balance"> <span class="dollar-sign">$</span>1000</p>
-                    <p>Properties: ${item.listOfOwnedCards}</p>
+                    <p>Properties: ${currentPlayer.listOfOwnedCards}</p>
                     `;
-                   
                     outputArea.appendChild(div);
+
+                // puts the remaining players
+                items.forEach(item => {
+                    if(item.username !== currentPlayerName){
+                        const div = document.createElement('div');
+                        div.classList.add("player-info");
+                        div.id = item.color + '-player';
+                        div.innerHTML = `
+                        <h2>${item.username}</h2>
+                        <p class="balance"> <span class="dollar-sign">$</span>1000</p>
+                        <p>Properties: ${item.listOfOwnedCards}</p>
+                        `;
+                       
+                        outputArea.appendChild(div);
+                    }
+                   
                 });
 
             }
@@ -107,4 +128,21 @@ function getPlayers(){
 }
 
 getPlayers();
+
+
+function getCurrentUrlSearchParams(){
+    const queryString = window.location.search;
+    return new URLSearchParams(queryString);
+}
+
+function findUserName(players, username){
+    let object = [];
+    for(let i=0; i< players.length; i++){
+        if (players[i].username === username){
+            object[0] = players[i]
+            break;
+        };
+    }
+    return object;
+}
 
