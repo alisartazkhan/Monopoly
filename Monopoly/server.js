@@ -115,8 +115,6 @@ app.listen(port, () => {
 
 
 
-// what collections do we need ???
-
 app.get('', (req, res) => {
   res.end()
 });
@@ -174,6 +172,17 @@ app.get('/get/card/:index', (req, res) => {
   })
   .catch((error) => {
     res.end("ERROR: get card using index")
+  });
+});
+
+
+app.get('/get/cards/', (req, res) => {
+  Card.find({}).exec()
+  .then((cards) => {
+    res.end(JSON.stringify(cards, undefined, 2));
+  })
+  .catch((error) => {
+    res.end("ERROR: get cards")
   });
 });
 
@@ -348,6 +357,86 @@ app.get('/account/login/:USERNAME/:PASSWORD', (req, res) => {
     }
   }))
 });
+
+function createAllCards(){
+  console.log('Recreating all the cards');
+  let cardData = [
+    [0,0,0],  // cardID, price, base rent
+    [1,60,2],
+    [2,0,0],
+    [3,60,4],
+    [4,200,50],
+    [5,100,6],
+    [6,100,6],
+    [7,120,8],
+    [8,0,0],
+    [9,140,10],
+    [10,140,10],
+    [11,160,12],
+    [12,200,50],
+    [13,180,14],
+    [14,180,14],
+    [15,200,16],
+    [16,0,0],
+    [17,220,18],
+    [18,220,18],
+    [19,240,20],
+    [20,200,50],
+    [21,260,22],
+    [22,260,22],
+    [23,280,24],
+    [24,0,0],
+    [25,300,26],
+    [26,300,26],
+    [27,320,28],
+    [28,200,50],
+    [29,350,35],
+    [30,0,0],
+    [31,400,50]
+  ]
+  for(let i=0; i<cardData.length; i++ ){
+    let c = new Card({
+      id: cardData[i][0],
+      color: null,
+      name: null,
+      price: cardData[i][1],
+      isPurchased: null,
+      ownerID: null,    // id val of User Object
+      hasSet: null,    // if owner purchased the all the cards in the set
+      rent: cardData[i][2],
+      visitors: [], // list of User id values currently on the card
+      otherCardsInSet: [],  // id vals of other Cards in set
+      numberOfHouses: null, 
+      houseRentMultiplier: null
+    });
+
+    c.save();
+  }
+
+}
+
+// delete all documents from the 'User' collection
+Card.deleteMany({})
+.then(() => {
+  console.log('Deleted all cards');
+  createAllCards();
+})
+.catch((err) => console.log('Error deleting cards:', err));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 /**
