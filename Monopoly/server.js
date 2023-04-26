@@ -24,6 +24,7 @@ mongoose.connection.on('error', () => {
 });
 
 const { receiveMessageOnPort } = require('worker_threads');
+const { match } = require('assert');
 var Schema = mongoose.Schema;
 
 
@@ -257,9 +258,7 @@ app.get('/get/user_color/:username', (req, res) => {
 });
 
 
-/**
- * Sends a list of players to the clients
- */
+//  Sends a list of players to the clients
 app.get('/get/players/', (req, res) => {
   console.log('Sending all players');
   let p1 = User.find({}).exec()
@@ -270,6 +269,56 @@ app.get('/get/players/', (req, res) => {
     console.log(error);
     res.end('FAIL');
   });
+});
+
+
+//  updates player data based on local changes
+app.post('/update/players', (res, req) => {
+  console.log('updating players in the db');
+  console.log(req.body);
+  var playersToUpdate = JSON.parse(req.body);
+  for( let i in playersToUpdate){
+    let p = playersToUpdate[i];
+    let p2 = User.findOne({id : p.id}).exec();
+    p2.then((matchingPlayer) => {
+      matchingPlayer = {
+        balance: p.balance,
+        position: p.position,
+        listOfCardsOwned: p.listOfCardsOwned,
+        numberOfHouses: p.numberOfHouses
+      }
+      matchingPlayer.save();
+
+    });
+
+  }
+  res.end('SAVED PLAYERS SUCCESSFULLY')
+  
+});
+
+//  updates cards based on local changes
+app.post('/update/cards', (res, req) => {
+  console.log('updating cards in the db');
+  var cardsToUpdate = JSON.parse(req.body);
+  for( let i in cardsToUpdate){
+    let p = cardsToUpdate[i];
+    let p2 = Card.findOne({id : p.id}).exec();
+    p2.then((matchingCard) => {
+      matchingCard = {
+        price: p.prce,
+        isPurchased: p.isPurchased,
+        ownerID: p.ownerID,
+        hasSet: p.hasSet,
+        visitors: p.visitors,
+        numberOfHouses: p.numberOfHouses,
+        houseRentMultiplier: p.houseRentMultiplier
+      }
+      matchingCard.save();
+
+    });
+  }
+  res.end('SAVED CARDS SUCCESSFULLY')
+
 });
 
 var user_Id = 0;   // users start from 0 index

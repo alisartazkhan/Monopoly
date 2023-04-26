@@ -20,8 +20,9 @@ class Tile {
 
 
   let playersTurn = 1;
-  let curPlayersTurn = playersTurn
-  let pList = ["index 0",new Player(1),new Player(2),new Player(3),new Player(4)] // create player list
+  let curPlayersTurn = playersTurn;
+  //   let pList = ["index 0",new Player(1),new Player(2),new Player(3),new Player(4)] // create player list
+  let pList = ["index 0"];
   let newLoc = 0;
   displayInitialLocations();
 //   let tList = [
@@ -75,8 +76,125 @@ async function  createTiles(){
     // console.log(tList.length);
 }
 
+
 createTiles();
 
+/**
+ *  populates the pList with all players if the pList doesn't have any players
+ *  or it just updates the existing player data
+ * @param {} data 
+ */
+function createPlayerList(data){
+    // adds new players
+    // assuming that the pList is either empty or pList =  ["index 0"] at this point;
+    let createNewPlayers = (pList.length <= 1); 
+    for(let i in data){
+        let p = data[i];
+        if(createNewPlayers){
+            let newPlayer = new Player(p.id);
+            pList.push(newPlayer);
+        }else{
+            let existingPlayer = getPlayerById(p.id);
+            existingPlayer = {
+                money: p.balance,
+                pos: p.position,
+                // to do
+               // propList: p.propList
+            }
+        }
+        
+    }
+    
+}
+
+function getPlayerById(id){
+    if(pList.length <= 1){
+        console.log('player list is emplty');
+        return
+    }
+    for(let i =1; i < pList.length; i++){
+        let p = pList[i];
+        if(p.id == id){
+            return p;
+        }
+    }
+    console.log('invalid search ID');
+    return null;
+}
+
+/**
+ * fetches a list of all the players from server
+ */
+function getAllPlayers(){
+    fetch('/get/players')
+  .then(response => response.json())
+  .then(data => {
+    console.log(data);
+    createPlayerList(data);
+})
+  .catch(error => console.error(error));
+}
+setInterval(getAllPlayers, 2000);
+
+/**
+ * sends the updated player data to the server
+ */
+function updatePlayers(){
+    let url = '/update/players';
+
+    const playerObjects = pList.slice(1).map(player => {
+        return {
+          balance: player.money,
+          id: player.id,
+          position: player.pos,
+          propList: player.propList
+        };
+      });
+
+    let p = fetch(url, {
+        method: 'POST',
+        body: JSON.stringify(playerObjects), // skips "index 0" in the pList
+        headers: {"Content-Type": "application/json"}
+    });
+    p.then(response => {
+        console.log(response);
+      });
+      p.catch(() => { 
+        alert('something went wrong while updating players');
+    });
+
+}
+setInterval(updatePlayers, 2000);
+
+
+/**
+ * sends the updated card data to the server
+ */
+function updateCards(){
+    let url = '/update/cards';
+
+    const tileObjects = tList.map(tile => {
+        return {
+            id: tile.id,
+            price: tile.price,
+            rent: tile.baseRent,
+            ownerID: tile.owner
+        };
+      });
+    let p = fetch( url, {
+        method: 'POST',
+        body: JSON.stringify(tileObjects),
+        headers: {"Content-Type": "application/json"}
+    });
+    p.then(response => {
+        console.log(response);
+        });
+      p.catch(() => { 
+        alert('something went wrong while updating cards');
+    });
+}
+
+setInterval(updateCards, 2000);
   
 
   function buyProp(){

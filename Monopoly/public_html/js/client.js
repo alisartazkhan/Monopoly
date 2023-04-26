@@ -67,24 +67,6 @@ function login(){
         
     }
 }
-
-
-/**
- * returns the list of all the players
- */
-function getAllPlayers(){
-    fetch('/get/players')
-  .then(response => response.json())
-  .then(data => {
-    // TO DO
-    console.log(data)
-})
-  .catch(error => console.error(error));
-}
-
-getAllPlayers();
-
-
 // display message for invalid login credentials
 function showLoginMessage(message){
     document.getElementById("invalid-login").innerText = message;
