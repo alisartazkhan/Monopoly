@@ -66,3 +66,12 @@ div span {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+#help_btn {
+  position: fixed;
+  left: 50px;
+  bottom: 50px;
+  border-radius: 25px;
+  width: 55px;
+  height: 25px;
+}

@@ -349,3 +349,8 @@ function findUserName(players, username){
     return object;
 }
 
+
+
+function helpPage(){
+    window.location.href = './help.html';
+}

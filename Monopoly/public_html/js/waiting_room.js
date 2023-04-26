@@ -77,3 +77,9 @@ function loadWaitingRoom(){
     document.getElementById('user_color').style.color = color;
   });
 }
+
+
+
+function helpPage(){
+  window.location.href = './help.html';
+}

@@ -1,6 +1,6 @@
 body{
     margin:0%;
-    background:#CCD1D9;
+    background-color: rgba(43, 186, 43, 0.524);
 }
 .board{
     width:50%;
@@ -154,3 +154,12 @@ p.balance{
     cursor: pointer;
   }
   
+
+#help_btn {
+  position: fixed;
+  left: 20px;
+  bottom: 20px;
+  border-radius: 25px;
+  width: 55px;
+  height: 25px;
+}
