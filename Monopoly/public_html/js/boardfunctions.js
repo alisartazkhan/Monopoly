@@ -4,7 +4,7 @@ class Player {
     this.money = 1500;
     this.id = id;
     this.pos = 0;
-    this.propList = []
+    this.propList = [];
     }
   }
 
@@ -21,7 +21,7 @@ class Tile {
 
   let playersTurn = 1;
   let curPlayersTurn = playersTurn;
-  //   let pList = ["index 0",new Player(1),new Player(2),new Player(3),new Player(4)] // create player list
+    // let pList = ["index 0",new Player(1),new Player(2),new Player(3),new Player(4)] // create player list
   let pList = ["index 0"];
   let newLoc = 0;
   displayInitialLocations();
@@ -62,18 +62,53 @@ class Tile {
 
 let tList = [];
 async function fetchCardsFromServer(){
-    const cards = await fetch('/get/cards');
+    const cards = await fetch('/get/cards/');
     const data = await cards.json();
     return data;
 }
 
-async function fetchTurnFromServer(){
-    const turn = await fetch('/get/turn/');
-    const data = await turn.json();
-    playerTurn = data;   
+
+/**
+ * sends the updated player turn data to the server
+ *  IMPORTANT
+ * WE WILL UPDATE THE TURN IN THE SERVER ONLY WHEN IT CHANGES. 
+ * If we repeatedly call updateTurn, mongodb throws an error.
+ * DON'T CALL IT INSIDE setInterval()
+ */
+function updateTurn(){
+    let url = '/update/turn';
+let p = fetch(url, {
+    method: 'POST',
+    body: JSON.stringify({turn: playersTurn}),
+    headers: {"Content-Type": "application/json"}
+});
+p.then(response => {
+    console.log(response);
+  });
+  p.catch(() => { 
+    alert('something went wrong while updating turn');
+});
+
 }
 
-setInterval(fetchTurnFromServer(), 2000);
+ 
+function fetchTurnFromServer(){
+    // console.log('fetching turn info');
+    let p = fetch('/get/turn');
+    p.then(data => {
+        return data.json();
+    })
+    .then(turn => {
+        // console.log(turn);
+        playersTurn = turn
+    });
+    p.catch(error => {
+    // Handle any errors here
+    console.error(error);
+  });
+}
+
+setInterval(fetchTurnFromServer, 2000);
 
 
 async function  createTiles(){
@@ -94,10 +129,9 @@ createTiles();
  * @param {} data 
  */
 function createPlayerList(data){
-    // adds new players
     // assuming that the pList is either empty or pList =  ["index 0"] at this point;
     let createNewPlayers = (pList.length <= 1); 
-    for(let i in data){
+    for(let i=0; i < data.length; i++){
         let p = data[i];
         if(createNewPlayers){
             let newPlayer = new Player(p.id);
@@ -107,8 +141,8 @@ function createPlayerList(data){
             existingPlayer = {
                 money: p.balance,
                 pos: p.position,
-                // to do
-            //    propList: p.propList
+                propList: p.listOfCardsOwned
+            
             }
         }
         
@@ -135,66 +169,59 @@ function getPlayerById(id){
  * fetches a list of all the players from server
  */
 function getAllPlayers(){
-    fetch('/get/players')
-  .then(response => response.json())
-  .then(data => {
-    console.log(data);
-    createPlayerList(data);
-})
-  .catch(error => console.error(error));
+    // console.log('fetching all players');
+    let p = fetch('/get/players')
+    p.then(data => {
+        return data.json();
+        })
+        .then(post => {
+            createPlayerList(post);
+        });
+    p.catch(error => {
+        // Handle any errors here
+        console.error(error);
+      });
+
+    
 }
-setInterval(getAllPlayers, 2000);
+setInterval(getAllPlayers, 2000); 
 
 /**
  * sends the updated player data to the server
  */
 function updatePlayers(){
-    let url = '/update/players';
+    // console.log('sending player data to the server')
+    let url = '/update/players';   
+    let jsonPlayersToSend = [];
+    for(let i=1; i< pList.length; i++){
+        let player = pList[i];
+        let obj = {
+            balance: player.money,
+            id: player.id,
+            position: player.pos,
+            listOfCardsOwnded: player.propList
+        }
+        jsonPlayersToSend.push(obj);
+    }
 
-    const playerObjects = pList.slice(1).map(player => {
-        return {
-          balance: player.money,
-          id: player.id,
-          position: player.pos,
-          // to be changed
-          listOfCardsOwnded: player.propList
-        };
-      });
-
+    // console.log(jsonPlayersToSend);
+    const data = JSON.stringify(jsonPlayersToSend);
     let p = fetch(url, {
         method: 'POST',
-        body: JSON.stringify(playerObjects), // skips "index 0" in the pList
+        body: data, // skips "index 0" in the pList
         headers: {"Content-Type": "application/json"}
     });
     p.then(response => {
-        console.log(response);
+        // console.log(response);
       });
-      p.catch(() => { 
+    p.catch(() => { 
         alert('something went wrong while updating players');
     });
 
 }
 setInterval(updatePlayers, 2000);
 
-/**
- * sends the updated player data to the server
- */
-function updateTurn(){
-    let url = '/update/turn';
-let p = fetch(url, {
-    method: 'POST',
-    body: JSON.stringify(playersTurn), // skips "index 0" in the pList
-    headers: {"Content-Type": "application/json"}
-});
-p.then(response => {
-    console.log(response);
-  });
-  p.catch(() => { 
-    alert('something went wrong while updating turn');
-});
 
-}
-setInterval(updateTurn, 2000);
 
 
 /**
@@ -217,7 +244,7 @@ function updateCards(){
         headers: {"Content-Type": "application/json"}
     });
     p.then(response => {
-        console.log(response);
+        // console.log(response);
         });
       p.catch(() => { 
         alert('something went wrong while updating cards');
@@ -469,7 +496,7 @@ function getPlayers(){
                     div.id = currentPlayer.color + '-player';
                     div.innerHTML = `
                     <h2>${currentPlayer.username}</h2>
-                    <p class="balance"> <span class="dollar-sign">$</span>1000</p>
+                    <p class="balance"> <span class="dollar-sign">$</span>${currentPlayer.balance}</p>
                     <p>Properties: ${currentPlayer.listOfOwnedCards}</p>
                     `;
                     outputArea.appendChild(div);
@@ -482,7 +509,7 @@ function getPlayers(){
                         div.id = item.color + '-player';
                         div.innerHTML = `
                         <h2>${item.username}</h2>
-                        <p class="balance"> <span class="dollar-sign">$</span>1000</p>
+                        <p class="balance"> <span class="dollar-sign">$</span>${currentPlayer.balance}</p>
                         <p>Properties: ${item.listOfOwnedCards}</p>
                         `;
                        

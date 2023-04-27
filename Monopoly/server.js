@@ -14,7 +14,7 @@ app.use(express.json()) // for json
 app.use(express.urlencoded({ extended: true })) // for form data
 
 
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
 //Connect to mongoDB server  
 connection_string = 'mongodb://127.0.0.1/Monopoly';
@@ -168,7 +168,7 @@ app.get('/get/user_color/:username', (req, res) => {
 
 
 //  Sends a list of players to the clients
-app.get('/get/players/', (req, res) => {
+app.get('/get/players', (req, res) => {
   console.log('Sending all players');
   let p1 = User.find({}).exec()
   p1.then( (results) => { 
@@ -197,11 +197,11 @@ app.get('/get/turn/', (req, res) => {
 
 
 //  updates player data based on local changes
-app.post('/update/turn/', (res, req) => {
-  console.log('updating players in the db');
+app.post('/update/turn', (req, res) => {
+  console.log('updating turn data in the db');
   console.log(req.body);
-  var pTurn = JSON.parse(req.body);
-  t.playerTurn = pTurn;
+  var pTurn = req.body;
+  t.playerTurn = pTurn.turn;
   t.save();
   
 
@@ -210,23 +210,51 @@ app.post('/update/turn/', (res, req) => {
   
 });
 
+//  updates player data based on local changes
+app.post('/update/players', (req, res) => {
+  console.log('updating players in the db');
+  console.log(req.body[0]);
+  const playersToUpdate = req.body;
+  
+  for( let i=0; i < playersToUpdate.length; i++){
+    let p = playersToUpdate[i];
+    console.log(p);
+    let test = User.find({}).exec();
+    test.then((res) => {
+      console.log(res);
+    })
+    let p2 = User.findOne({id:p.id}).exec();
+    p2.then((matchingPlayer) => {
+      console.log(matchingPlayer);
+      matchingPlayer.balance = p.balance;
+      matchingPlayer.position = p.position;
+      matchingPlayer.listOfCardsOwned = p.listOfCardsOwned;
+      matchingPlayer.save();
+
+    });
+
+  }
+  res.send('SAVED PLAYERS SUCCESSFULLY')
+  
+});
+
 //  updates cards based on local changes
-app.post('/update/cards/', (res, req) => {
+app.post('/update/cards/', (req, res) => {
   console.log('updating cards in the db');
-  var cardsToUpdate = JSON.parse(req.body);
+  console.log(req.body);
+  var cardsToUpdate = req.body;
   for( let i in cardsToUpdate){
     let p = cardsToUpdate[i];
     let p2 = Card.findOne({id : p.id}).exec();
     p2.then((matchingCard) => {
-      matchingCard = {
-        price: p.prce,
-        isPurchased: p.isPurchased,
-        ownerID: p.ownerID,
-        hasSet: p.hasSet,
-        visitors: p.visitors,
-        numberOfHouses: p.numberOfHouses,
-        houseRentMultiplier: p.houseRentMultiplier
-      }
+      
+      matchingCard.price = p.prce;
+      matchingCard.isPurchased = p.isPurchased;
+      matchingCard.ownerID = p.ownerID;
+      matchingCard.hasSet = p.hasSet;
+      matchingCard.visitors = p.visitors;
+      matchingCard.numberOfHouses = p.numberOfHouses;
+      matchingCard.houseRentMultiplier = p.houseRentMultiplier;
       matchingCard.save();
 
     });
@@ -253,11 +281,7 @@ app.post('/add/user/', (req, res) => {
   console.log("Saving a new user")
   let newUserToSave = req.body;
   let userData = null;
-  try {
-    userData = JSON.parse(newUserToSave);
-  } catch (e) {
-    userData = newUserToSave;
-  }
+  userData = newUserToSave;
 
   let p3 = User.find({
     username: userData.username,
@@ -271,7 +295,7 @@ app.post('/add/user/', (req, res) => {
         id: user_Id,
         username: userData.username,
         password: secureHash,
-        balace: 1000,
+        balace: 1500,
         position: 0,
         color: user_colors[user_Id % user_colors.length],
         status: "NR",
