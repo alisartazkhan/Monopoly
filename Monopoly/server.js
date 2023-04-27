@@ -87,7 +87,10 @@ app.listen(port, () => {
   console.log('Server has started.');
 })
 
-
+// to prevent favicon error on browser
+app.get('/favicon.ico', (req, res) => {
+  res.status(204).end();
+});
 
 
 
