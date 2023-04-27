@@ -99,7 +99,7 @@ function createPlayerList(data){
                 money: p.balance,
                 pos: p.position,
                 // to do
-               // propList: p.propList
+            //    propList: p.propList
             }
         }
         
@@ -147,7 +147,8 @@ function updatePlayers(){
           balance: player.money,
           id: player.id,
           position: player.pos,
-          propList: player.propList
+          // to be changed
+        //   propList: player.propList
         };
       });
 
