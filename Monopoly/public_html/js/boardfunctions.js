@@ -4,7 +4,7 @@ class Player {
     this.money = 1500;
     this.id = id;
     this.pos = 0;
-    this.propList = ""
+    this.propList = []
     }
   }
 
@@ -66,6 +66,15 @@ async function fetchCardsFromServer(){
     const data = await cards.json();
     return data;
 }
+
+async function fetchTurnFromServer(){
+    const turn = await fetch('/get/turn/');
+    const data = await turn.json();
+    playerTurn = data;   
+}
+
+setInterval(fetchTurnFromServer(), 2000);
+
 
 async function  createTiles(){
     const tiles = await fetchCardsFromServer();
@@ -148,7 +157,7 @@ function updatePlayers(){
           id: player.id,
           position: player.pos,
           // to be changed
-        //   propList: player.propList
+          listOfCardsOwnded: player.propList
         };
       });
 
@@ -166,6 +175,26 @@ function updatePlayers(){
 
 }
 setInterval(updatePlayers, 2000);
+
+/**
+ * sends the updated player data to the server
+ */
+function updateTurn(){
+    let url = '/update/turn';
+let p = fetch(url, {
+    method: 'POST',
+    body: JSON.stringify(playersTurn), // skips "index 0" in the pList
+    headers: {"Content-Type": "application/json"}
+});
+p.then(response => {
+    console.log(response);
+  });
+  p.catch(() => { 
+    alert('something went wrong while updating turn');
+});
+
+}
+setInterval(updateTurn, 2000);
 
 
 /**

@@ -28,12 +28,17 @@ const { match } = require('assert');
 var Schema = mongoose.Schema;
 
 
-var BoardSchema = new Schema({
-  boardState: [Number],  // id values of players and where they are on the board. Write -1 for cards w no player  [-1,1,-1,2,-1,3,-1,4]
-  numberOfPlayers: Number,
-  players: [Number]     // id values of users
+var TurnSchema = new Schema({
+  playerTurn: Number,
 });
-const Board = mongoose.model('Board', BoardSchema);
+const Turn = mongoose.model('Turn', TurnSchema);
+
+
+  let t = new Turn ({
+    playerTurn: 1
+  })
+   
+  t.save();
 
 
 var CardSchema = new Schema({ 
@@ -78,103 +83,7 @@ app.listen(port, () => {
 
 
 
-// app.post("/add/space/create", (req,res) => {
 
-//     nameList = ["Go","NV Park","NV Rest","NV Villa","Jail","UT Park","UT Rest","UT Villa","Free",
-//     "CA Park", "CA Rest", "CA Villa", "Go to Jail","AZ Park","AZ Rest","AZ Villa"];
-//     colorList =["Grey","Blue","Blue","Blue","Grey","Red","Red","Red","Grey","Yellow","Yellow","Yellow","Grey"
-//     ,"Green","Green","Green"]
-//     costList = [0,100,100,120,0,120,120,140,0,200,200,220,0,250,250,300];
-
-//     for (var i = 0; i <= 15; i++) {
-//         var id = i.toString(10);
-//     //console.log("hi")
-//     console.log(req.body)
-//     var testItem1 = new Space( { 
-//       id: i,
-//       name: nameList[i],
-//       cost: costList[i],
-//       color: colorList[i]});
-//     let p = testItem1.save();
-//     // User.updateOne({username: req.params.username},  {$push: {listings: testItem1}}).exec();
-//     //console.log(User.findOne({ username: 'd' }).exec());
-//     }
-// })
-
-
-// app.get('/get/spaces/:id', (req, res) => {
-//   let p1 = Space.find({id:req.params.id}).exec();
-//     p1.then( (results) => {
-//       res.end(JSON.stringify(results));
-//       //console.log(resultString)
-//     });
-//     p1.catch( (error) => {
-//       console.log(error);
-//       res.end("FAIL")
-//     })
-//   });
-
-
-
-app.get('', (req, res) => {
-  res.end()
-});
-
-
-app.post('/add/card/', (res, req) => {
-
-});
-
-
-app.get('/get/boardState', (req, res) => {
-  Board.findOne().exec()
-    .then((board) => {
-      if (board) {
-        res.end(JSON.stringify(board.boardState));
-      } else {
-        res.status(404).json({ error: 'No board found' });
-      }
-    })
-    .catch((error) => { 
-      console.log(error);
-      res.status(500).json({ error: 'Internal server error' });
-    });
-});
-
-app.get('/get/numberOfPlayers', (req, res) => {
-  Board.findOne().exec()
-    .then((board) => {
-      if (board) {
-        res.end(JSON.stringify(board.numberOfPlayers));
-      } else {
-        res.status(404).json({ error: 'No board found' });
-      }
-    })
-    .catch((error) => { 
-      console.log(error);
-      res.status(500).json({ error: 'Internal server error' });
-    });
-});
-
-// CHECK IF THIS WORKs
-app.post('/add/card', (req, res) => {
-  var cardObj = JSON.parse(req.body);
-  var newCard = new Card(cardObj);
-  newCard.save();
-});
-
-
-// CHECK IF THIS WORKs
-app.get('/get/card/:index', (req, res) => {
-  var index = req.params.index;
-  Card.findOne({id: index}).exec()
-  .then((card) => {
-    res.end(JSON.stringify(card));
-  })
-  .catch((error) => {
-    res.end("ERROR: get card using index")
-  });
-});
 
 
 app.get('/get/cards/', (req, res) => {
@@ -271,33 +180,38 @@ app.get('/get/players/', (req, res) => {
   });
 });
 
+app.get('/get/turn/', (req, res) => {
+  Turn.findOne().exec()
+    .then((turn) => {
+      if (turn) {
+        res.end(JSON.stringify(turn.playerTurn));
+      } else {
+        res.status(404).json({ error: 'No turn found' });
+      }
+    })
+    .catch((error) => { 
+      console.log(error);
+      res.status(500).json({ error: 'Internal server error' });
+    });
+});
+
 
 //  updates player data based on local changes
-app.post('/update/players', (res, req) => {
+app.post('/update/turn/', (res, req) => {
   console.log('updating players in the db');
   console.log(req.body);
-  var playersToUpdate = JSON.parse(req.body);
-  for( let i in playersToUpdate){
-    let p = playersToUpdate[i];
-    let p2 = User.findOne({id : p.id}).exec();
-    p2.then((matchingPlayer) => {
-      matchingPlayer = {
-        balance: p.balance,
-        position: p.position,
-        listOfCardsOwned: p.listOfCardsOwned,
-        numberOfHouses: p.numberOfHouses
-      }
-      matchingPlayer.save();
+  var pTurn = JSON.parse(req.body);
+  t.playerTurn = pTurn;
+  t.save();
+  
 
-    });
 
-  }
-  res.end('SAVED PLAYERS SUCCESSFULLY')
+  res.end('Updated Player Turn')
   
 });
 
 //  updates cards based on local changes
-app.post('/update/cards', (res, req) => {
+app.post('/update/cards/', (res, req) => {
   console.log('updating cards in the db');
   var cardsToUpdate = JSON.parse(req.body);
   for( let i in cardsToUpdate){
@@ -320,6 +234,11 @@ app.post('/update/cards', (res, req) => {
   res.end('SAVED CARDS SUCCESSFULLY')
 
 });
+
+
+
+
+
 
 var user_Id = 0;   // users start from 0 index
 const user_colors = ['red', 'blue', 'green', 'yellow'];
