@@ -160,16 +160,18 @@ app.get('/set/ready/:username', (req, res) => {
  */
 app.get('/get/userID/:username', (req, res) => {
   let u = req.params.username;
-  console.log(u);
+  console.log("Username: " + u + " clicked Roll Dice.");
   User.findOne({username: u}).exec()
-  .then((user) => {
-    console.log(user);
-      res.end(user.id);
-  }).catch((error) => {
-    console.log("ERROR: Finding user obj using username");
-    res.end("ERROR: Finding User ID")
-  });
+    .then((user) => {
+      console.log("UserID: " + user.id);
+      res.end(user.id.toString());
+    })
+    .catch((error) => {
+      console.log("ERROR: Finding user obj using username");
+      res.end("ERROR: Finding User ID")
+    });
 });
+
   
 
 /**

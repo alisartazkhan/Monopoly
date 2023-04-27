@@ -277,7 +277,7 @@ function updateCards(){
 }
 
 
-function rollDice(){
+async function rollDice(){
     /*var d1 = Math.floor(Math.random() * 6)+1;
     var d2 = Math.floor(Math.random() * 6)+1;
     //console.log(d1+d2);
@@ -313,10 +313,10 @@ function rollDice(){
     incrementTurn();   */
     var UserIDData = getUsername();
     
-    var myID = fetchClientIDFromServer(UserIDData);
-    console.log(myID);
+    var myID = await fetchClientIDFromServer(UserIDData);
+    console.log("My ID is: " + myID);
     //if (playersTurn == myId)
-    console.log(playersTurn) 
+    // console.log(playersTurn) 
 }
 
 /**
