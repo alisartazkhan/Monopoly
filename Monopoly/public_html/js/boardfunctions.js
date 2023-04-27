@@ -91,6 +91,8 @@ p.then(response => {
 
 }
 
+//setInterval(updateTurn, 2000);
+
  
 function fetchTurnFromServer(){
     // console.log('fetching turn info');
@@ -100,6 +102,7 @@ function fetchTurnFromServer(){
     })
     .then(turn => {
         // console.log(turn);
+        //console.log(turn)
         playersTurn = turn
     });
     p.catch(error => {
@@ -219,7 +222,7 @@ function updatePlayers(){
     });
 
 }
-setInterval(updatePlayers, 2000);
+//setInterval(updatePlayers, 2000);
 
 
 
@@ -251,7 +254,7 @@ function updateCards(){
     });
 }
 
-setInterval(updateCards, 2000);
+//setInterval(updateCards, 2000);
   
 
   function buyProp(){
@@ -275,7 +278,7 @@ setInterval(updateCards, 2000);
 
 
 function rollDice(){
-    var d1 = Math.floor(Math.random() * 6)+1;
+    /*var d1 = Math.floor(Math.random() * 6)+1;
     var d2 = Math.floor(Math.random() * 6)+1;
     //console.log(d1+d2);
     var curLoc = pList[playersTurn].pos
@@ -307,8 +310,32 @@ function rollDice(){
     }
 
  
-    incrementTurn();    
+    incrementTurn();   */
+    var UserIDData = getUsername();
+    
+    var myID = fetchClientIDFromServer(UserIDData);
+    console.log(myID);
+    //if (playersTurn == myId)
+    console.log(playersTurn) 
 }
+
+/**
+ * Get username from URL and returns it
+ */
+function getUsername() {
+    const urlParams = new URLSearchParams(window.location.search);
+    let username = urlParams.get('username');
+    return username;
+  }
+
+
+  async function fetchClientIDFromServer(username){
+    const response = await fetch('/get/userID/'+username);
+    const text = await response.text();
+    console.log("Server output for ID: " + text);
+    return text;
+}
+
 
 function displayNewLocation(curLoc, newLoc){
     var curLocString = curLoc.toString()+"p"+playersTurn.toString();

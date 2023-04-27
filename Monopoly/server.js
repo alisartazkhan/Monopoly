@@ -29,16 +29,12 @@ var Schema = mongoose.Schema;
 
 
 var TurnSchema = new Schema({
-  playerTurn: Number,
+  playerTurn: Number
 });
 const Turn = mongoose.model('Turn', TurnSchema);
 
 
-  let t = new Turn ({
-    playerTurn: 1
-  })
-   
-  t.save();
+
 
 
 var CardSchema = new Schema({ 
@@ -73,9 +69,19 @@ var UserSchema = new Schema({
 var User = mongoose.model("UserData", UserSchema);
 
 // delete all documents from the 'User' collection
-User.deleteMany({})
-.then(() => console.log('Deleted all user data'))
-.catch((err) => console.log('Error deleting users:', err));
+//User.deleteMany({})
+//.then(() => console.log('Deleted all user data'))
+//.catch((err) => console.log('Error deleting users:', err));
+
+//Turn.deleteMany({})
+//.then(() => console.log('Deleted all turn data'))
+//.catch((err) => console.log('Error deleting turns:', err));
+
+var t = new Turn ({
+  playerTurn: 1
+})
+ 
+t.save();
 
 app.listen(port, () => {
   console.log('Server has started.');
@@ -106,7 +112,7 @@ app.get('/isReady/', (req, res) => {
   User.find().exec()
   .then((results) => {
 
-    console.log("All Users " + results);
+    // console.log("All Users " + results);
 
     for (let i=0; i<results.length; i++){
       // console.log("iterating");
@@ -114,7 +120,7 @@ app.get('/isReady/', (req, res) => {
       User.findOne({id: i}).exec()
       .then((user) => {
         // console.log(user);
-        console.log(i + ": " + user.status);
+        // console.log(i + ": " + user.status);
         if (user.status === "NR"){
           console.log(user.id + " is NR");
           isReady = 'false';
@@ -141,11 +147,27 @@ app.get('/set/ready/:username', (req, res) => {
     if (user.status === "NR"){
       user['status'] = 'R';
       user.save();
-      console.log(user);
+      // console.log(user);
       res.end("Status Change: Success");
     }
   }).catch((error) => {
     res.end("ERROR: Changing Status")
+  });
+});
+
+/**
+ * Set user to ready
+ */
+app.get('/get/userID/:username', (req, res) => {
+  let u = req.params.username;
+  console.log(u);
+  User.findOne({username: u}).exec()
+  .then((user) => {
+    console.log(user);
+      res.end(user.id);
+  }).catch((error) => {
+    console.log("ERROR: Finding user obj using username");
+    res.end("ERROR: Finding User ID")
   });
 });
   
@@ -169,13 +191,13 @@ app.get('/get/user_color/:username', (req, res) => {
 
 //  Sends a list of players to the clients
 app.get('/get/players', (req, res) => {
-  console.log('Sending all players');
+  // console.log('Sending all players');
   let p1 = User.find({}).exec()
   p1.then( (results) => { 
     res.end( JSON.stringify(results, undefined, 2) );
   });
   p1.catch( (error) => {
-    console.log(error);
+    // console.log(error);
     res.end('FAIL');
   });
 });
@@ -199,7 +221,7 @@ app.get('/get/turn/', (req, res) => {
 //  updates player data based on local changes
 app.post('/update/turn', (req, res) => {
   console.log('updating turn data in the db');
-  console.log(req.body);
+  // console.log(req.body);
   var pTurn = req.body;
   t.playerTurn = pTurn.turn;
   t.save();
@@ -211,21 +233,23 @@ app.post('/update/turn', (req, res) => {
 });
 
 //  updates player data based on local changes
+
+/*
 app.post('/update/players', (req, res) => {
-  console.log('updating players in the db');
-  console.log(req.body[0]);
+  // console.log('updating players in the db');
+  // console.log(req.body[0]);
   const playersToUpdate = req.body;
   
   for( let i=0; i < playersToUpdate.length; i++){
     let p = playersToUpdate[i];
-    console.log(p);
+    // console.log(p);
     let test = User.find({}).exec();
     test.then((res) => {
-      console.log(res);
+      // console.log(res);
     })
     let p2 = User.findOne({id:p.id}).exec();
     p2.then((matchingPlayer) => {
-      console.log(matchingPlayer);
+      // console.log(matchingPlayer);
       matchingPlayer.balance = p.balance;
       matchingPlayer.position = p.position;
       matchingPlayer.listOfCardsOwned = p.listOfCardsOwned;
@@ -238,10 +262,12 @@ app.post('/update/players', (req, res) => {
   
 });
 
+*/
+
 //  updates cards based on local changes
 app.post('/update/cards/', (req, res) => {
-  console.log('updating cards in the db');
-  console.log(req.body);
+  // console.log('updating cards in the db');
+  // console.log(req.body);
   var cardsToUpdate = req.body;
   for( let i in cardsToUpdate){
     let p = cardsToUpdate[i];
@@ -278,7 +304,7 @@ app.post('/add/user/', (req, res) => {
   if (user_Id > 3){
     res.end("max limit reached");
   }
-  console.log("Saving a new user")
+  // console.log("Saving a new user")
   let newUserToSave = req.body;
   let userData = null;
   userData = newUserToSave;
@@ -295,11 +321,11 @@ app.post('/add/user/', (req, res) => {
         id: user_Id,
         username: userData.username,
         password: secureHash,
-        balace: 1500,
+        balance: 1500,
         position: 0,
         color: user_colors[user_Id % user_colors.length],
         status: "NR",
-        listOfCardsOwned: [],
+        listOfCardsOwned: [10],
         numberOfHouses: 0
       });
       let p1 = newUser.save();
