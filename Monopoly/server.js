@@ -35,7 +35,7 @@ const Turn = mongoose.model('Turn', TurnSchema);
 
 
   let t = new Turn ({
-    playerTurn: 1
+    playerTurn: 2
   })
    
   t.save();
@@ -73,9 +73,13 @@ var UserSchema = new Schema({
 var User = mongoose.model("UserData", UserSchema);
 
 // delete all documents from the 'User' collection
-User.deleteMany({})
-.then(() => console.log('Deleted all user data'))
-.catch((err) => console.log('Error deleting users:', err));
+//User.deleteMany({})
+//.then(() => console.log('Deleted all user data'))
+//.catch((err) => console.log('Error deleting users:', err));
+
+Turn.deleteMany({})
+.then(() => console.log('Deleted all turn data'))
+.catch((err) => console.log('Error deleting turns:', err));
 
 app.listen(port, () => {
   console.log('Server has started.');
@@ -180,7 +184,7 @@ app.get('/get/players', (req, res) => {
   });
 });
 
-app.get('/get/turn/', (req, res) => {
+app.get('/get/turn', (req, res) => {
   Turn.findOne().exec()
     .then((turn) => {
       if (turn) {

@@ -275,7 +275,7 @@ setInterval(updateCards, 2000);
 
 
 function rollDice(){
-    var d1 = Math.floor(Math.random() * 6)+1;
+    /*var d1 = Math.floor(Math.random() * 6)+1;
     var d2 = Math.floor(Math.random() * 6)+1;
     //console.log(d1+d2);
     var curLoc = pList[playersTurn].pos
@@ -307,7 +307,8 @@ function rollDice(){
     }
 
  
-    incrementTurn();    
+    incrementTurn();   */
+    console.log(playersTurn)
 }
 
 function displayNewLocation(curLoc, newLoc){
