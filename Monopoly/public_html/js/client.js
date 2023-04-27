@@ -67,8 +67,6 @@ function login(){
         
     }
 }
-
-
 // display message for invalid login credentials
 function showLoginMessage(message){
     document.getElementById("invalid-login").innerText = message;

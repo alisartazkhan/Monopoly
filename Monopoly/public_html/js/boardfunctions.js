@@ -4,7 +4,7 @@ class Player {
     this.money = 1500;
     this.id = id;
     this.pos = 0;
-    this.propList = ""
+    this.propList = [];
     }
   }
 
@@ -20,44 +20,238 @@ class Tile {
 
 
   let playersTurn = 1;
-  let curPlayersTurn = playersTurn
-  let pList = ["index 0",new Player(1),new Player(2),new Player(3),new Player(4)] // create player list
+  let curPlayersTurn = playersTurn;
+    // let pList = ["index 0",new Player(1),new Player(2),new Player(3),new Player(4)] // create player list
+  let pList = ["index 0"];
   let newLoc = 0;
   displayInitialLocations();
-  let tList = [
-    new Tile(0,0,0),
-    new Tile(1,60,2),
-    new Tile(2,0,0),
-    new Tile(3,60,4),
-    new Tile(4,200,50),
-    new Tile(5,100,6),
-    new Tile(6,100,6),
-    new Tile(7,120,8),
-    new Tile(8,0,0), 
-    new Tile(9,140,10),
-    new Tile(10,140,10),
-    new Tile(11,160,12),
-    new Tile(12,200,50),
-    new Tile(13,180,14),
-    new Tile(14,180,14),
-    new Tile(15,200,16),
-    new Tile(16,0,0), 
-    new Tile(17,220,18),
-    new Tile(18,220,18),
-    new Tile(19,240,20),
-    new Tile(20,200,50),
-    new Tile(21,260,22),
-    new Tile(22,260,22),
-    new Tile(23,280,24),
-    new Tile(24,0,0), 
-    new Tile(25,300,26),
-    new Tile(26,300,26),
-    new Tile(27,320,28),
-    new Tile(28,200,50),
-    new Tile(29,350,35),
-    new Tile(30,0,0),
-    new Tile(31,400,50)]
+//   let tList = [
+//     new Tile(0,0,0),
+//     new Tile(1,60,2),
+//     new Tile(2,0,0),
+//     new Tile(3,60,4),
+//     new Tile(4,200,50),
+//     new Tile(5,100,6),
+//     new Tile(6,100,6),
+//     new Tile(7,120,8),
+//     new Tile(8,0,0), 
+//     new Tile(9,140,10),
+//     new Tile(10,140,10),
+//     new Tile(11,160,12),
+//     new Tile(12,200,50),
+//     new Tile(13,180,14),
+//     new Tile(14,180,14),
+//     new Tile(15,200,16),
+//     new Tile(16,0,0), 
+//     new Tile(17,220,18),
+//     new Tile(18,220,18),
+//     new Tile(19,240,20),
+//     new Tile(20,200,50),
+//     new Tile(21,260,22),
+//     new Tile(22,260,22),
+//     new Tile(23,280,24),
+//     new Tile(24,0,0), 
+//     new Tile(25,300,26),
+//     new Tile(26,300,26),
+//     new Tile(27,320,28),
+//     new Tile(28,200,50),
+//     new Tile(29,350,35),
+//     new Tile(30,0,0),
+//     new Tile(31,400,50)]
   //pList[3].money = 0
+
+let tList = [];
+async function fetchCardsFromServer(){
+    const cards = await fetch('/get/cards/');
+    const data = await cards.json();
+    return data;
+}
+
+
+/**
+ * sends the updated player turn data to the server
+ *  IMPORTANT
+ * WE WILL UPDATE THE TURN IN THE SERVER ONLY WHEN IT CHANGES. 
+ * If we repeatedly call updateTurn, mongodb throws an error.
+ * DON'T CALL IT INSIDE setInterval()
+ */
+function updateTurn(){
+    let url = '/update/turn';
+let p = fetch(url, {
+    method: 'POST',
+    body: JSON.stringify({turn: playersTurn}),
+    headers: {"Content-Type": "application/json"}
+});
+p.then(response => {
+    console.log(response);
+  });
+  p.catch(() => { 
+    alert('something went wrong while updating turn');
+});
+
+}
+
+ 
+function fetchTurnFromServer(){
+    // console.log('fetching turn info');
+    let p = fetch('/get/turn');
+    p.then(data => {
+        return data.json();
+    })
+    .then(turn => {
+        // console.log(turn);
+        playersTurn = turn
+    });
+    p.catch(error => {
+    // Handle any errors here
+    console.error(error);
+  });
+}
+
+setInterval(fetchTurnFromServer, 2000);
+
+
+async function  createTiles(){
+    const tiles = await fetchCardsFromServer();
+    for(let i in tiles){
+        let tile = new Tile(tiles[i].id, tiles[i].price, tiles[i].rent);
+        tList.push(tile);
+    } 
+    // console.log(tList.length);
+}
+
+
+createTiles();
+
+/**
+ *  populates the pList with all players if the pList doesn't have any players
+ *  or it just updates the existing player data
+ * @param {} data 
+ */
+function createPlayerList(data){
+    // assuming that the pList is either empty or pList =  ["index 0"] at this point;
+    let createNewPlayers = (pList.length <= 1); 
+    for(let i=0; i < data.length; i++){
+        let p = data[i];
+        if(createNewPlayers){
+            let newPlayer = new Player(p.id);
+            pList.push(newPlayer);
+        }else{
+            let existingPlayer = getPlayerById(p.id);
+            existingPlayer = {
+                money: p.balance,
+                pos: p.position,
+                propList: p.listOfCardsOwned
+            
+            }
+        }
+        
+    }
+    
+}
+
+function getPlayerById(id){
+    if(pList.length <= 1){
+        console.log('player list is emplty');
+        return
+    }
+    for(let i =1; i < pList.length; i++){
+        let p = pList[i];
+        if(p.id == id){
+            return p;
+        }
+    }
+    console.log('invalid search ID');
+    return null;
+}
+
+/**
+ * fetches a list of all the players from server
+ */
+function getAllPlayers(){
+    // console.log('fetching all players');
+    let p = fetch('/get/players')
+    p.then(data => {
+        return data.json();
+        })
+        .then(post => {
+            createPlayerList(post);
+        });
+    p.catch(error => {
+        // Handle any errors here
+        console.error(error);
+      });
+
+    
+}
+setInterval(getAllPlayers, 2000); 
+
+/**
+ * sends the updated player data to the server
+ */
+function updatePlayers(){
+    // console.log('sending player data to the server')
+    let url = '/update/players';   
+    let jsonPlayersToSend = [];
+    for(let i=1; i< pList.length; i++){
+        let player = pList[i];
+        let obj = {
+            balance: player.money,
+            id: player.id,
+            position: player.pos,
+            listOfCardsOwnded: player.propList
+        }
+        jsonPlayersToSend.push(obj);
+    }
+
+    // console.log(jsonPlayersToSend);
+    const data = JSON.stringify(jsonPlayersToSend);
+    let p = fetch(url, {
+        method: 'POST',
+        body: data, // skips "index 0" in the pList
+        headers: {"Content-Type": "application/json"}
+    });
+    p.then(response => {
+        // console.log(response);
+      });
+    p.catch(() => { 
+        alert('something went wrong while updating players');
+    });
+
+}
+setInterval(updatePlayers, 2000);
+
+
+
+
+/**
+ * sends the updated card data to the server
+ */
+function updateCards(){
+    let url = '/update/cards';
+
+    const tileObjects = tList.map(tile => {
+        return {
+            id: tile.id,
+            price: tile.price,
+            rent: tile.baseRent,
+            ownerID: tile.owner
+        };
+      });
+    let p = fetch( url, {
+        method: 'POST',
+        body: JSON.stringify(tileObjects),
+        headers: {"Content-Type": "application/json"}
+    });
+    p.then(response => {
+        // console.log(response);
+        });
+      p.catch(() => { 
+        alert('something went wrong while updating cards');
+    });
+}
+
+setInterval(updateCards, 2000);
   
 
   function buyProp(){
@@ -292,9 +486,9 @@ function getPlayers(){
                 const outputArea = document.getElementById('players');
                 let searchParams = getCurrentUrlSearchParams();
                 let currentPlayerName = searchParams.get('username');
-                console.log(items);
+                // console.log(items);
                 let currentPlayer = findUserName(items, currentPlayerName)[0];
-                console.log(currentPlayer);
+                // console.log(currentPlayer);
 
                 // puts the current player at the top
                 const div = document.createElement('div');
@@ -302,7 +496,7 @@ function getPlayers(){
                     div.id = currentPlayer.color + '-player';
                     div.innerHTML = `
                     <h2>${currentPlayer.username}</h2>
-                    <p class="balance"> <span class="dollar-sign">$</span>1000</p>
+                    <p class="balance"> <span class="dollar-sign">$</span>${currentPlayer.balance}</p>
                     <p>Properties: ${currentPlayer.listOfOwnedCards}</p>
                     `;
                     outputArea.appendChild(div);
@@ -315,7 +509,7 @@ function getPlayers(){
                         div.id = item.color + '-player';
                         div.innerHTML = `
                         <h2>${item.username}</h2>
-                        <p class="balance"> <span class="dollar-sign">$</span>1000</p>
+                        <p class="balance"> <span class="dollar-sign">$</span>${currentPlayer.balance}</p>
                         <p>Properties: ${item.listOfOwnedCards}</p>
                         `;
                        
