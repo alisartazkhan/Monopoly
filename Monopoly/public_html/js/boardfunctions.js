@@ -6,30 +6,13 @@ var oldLocs = []
 async function setMetaData(){
     const playerList = await getPlayerList();
     const playerCount = getPlayerCount(playerList);
-    oldLocs = Array(playerCount).fill(0);
+    oldLocs = Array(playerCount).fill(1);
     console.log(oldLocs)
+    displayNewLocation();
 
 }
 
 
-class Player {
-    constructor(id) {
-    this.money = 1500;
-    this.id = id;
-    this.pos = 0;
-    this.propList = [];
-    }
-  }
-
-  
-class Tile {
-    constructor(id,price,baseRent) {
-    this.id = id;
-    this.price = price;
-    this.baseRent = baseRent;
-    this.owner = 0;
-    }
-  }
 
 
   //var playersTurn = 1;
@@ -114,7 +97,7 @@ function fetchTurnFromServer(){
         return data.json();
     })
     .then(turn => {
-        console.log("turn:" + turn)
+        //console.log("turn:" + turn)
         return parseInt(turn);
     })
     .catch(error => {
@@ -126,44 +109,7 @@ function fetchTurnFromServer(){
 //setInterval(fetchTurnFromServer, 2000);
 
 
-async function  createTiles(){
-    const tiles = await fetchCardsFromServer();
-    for(let i in tiles){
-        let tile = new Tile(tiles[i].id, tiles[i].price, tiles[i].rent);
-        tList.push(tile);
-    } 
-    // console.log(tList.length);
-}
 
-
-createTiles();
-
-/**
- *  populates the pList with all players if the pList doesn't have any players
- *  or it just updates the existing player data
- * @param {} data 
- */
-function createPlayerList(data){
-    // assuming that the pList is either empty or pList =  ["index 0"] at this point;
-    let createNewPlayers = (pList.length <= 1); 
-    for(let i=0; i < data.length; i++){
-        let p = data[i];
-        if(createNewPlayers){
-            let newPlayer = new Player(p.id);
-            pList.push(newPlayer);
-        }else{
-            let existingPlayer = getPlayerById(p.id);
-            existingPlayer = {
-                money: p.balance,
-                pos: p.position,
-                propList: p.listOfCardsOwned
-            
-            }
-        }
-        
-    }
-    
-}
 
 function getPlayerById(id){
     if(pList.length <= 1){
@@ -180,26 +126,6 @@ function getPlayerById(id){
     return null;
 }
 
-/**
- * fetches a list of all the players from server
- */
-function getAllPlayers(){
-    // console.log('fetching all players');
-    let p = fetch('/get/players')
-    p.then(data => {
-        return data.json();
-        })
-        .then(post => {
-            createPlayerList(post);
-        });
-    p.catch(error => {
-        // Handle any errors here
-        console.error(error);
-      });
-
-    
-}
-setInterval(getAllPlayers, 2000); 
 
 /**
  * sends the updated player data to the server
@@ -331,7 +257,7 @@ async function rollDice(){
     incrementTurn();   */
     var UserIDData = getUsername();
     var playersTurn = await fetchTurnFromServer();
-    console.log(playersTurn)
+    //console.log("It is now player "+playersTurn+'s turn')
     var myID = await fetchClientIDFromServer(UserIDData);
     myID = parseInt(myID,10);
     const playerList = await getPlayerList();
@@ -343,14 +269,16 @@ async function rollDice(){
             let potentialPlayer = playerList[i];
             
             if (potentialPlayer.id == myID){
-                console.log(potentialPlayer)
+                //console.log(potentialPlayer)
                 var d1 = Math.floor(Math.random() * 6)+1;
                 var d2 = Math.floor(Math.random() * 6)+1;
+                var total = d1 + d2
 
-                console.log(d1+d2);
 
                 var newLocation = (potentialPlayer.position + d1 + d2) % 32
-                console.log("new location"+newLocation)
+                //console.log("new location"+newLocation)
+                console.log("Rolled a "+total+ " to put them at "+ newLocation);
+
                 updatePlayerLocation(myID, newLocation);
 
                 
@@ -365,7 +293,7 @@ async function rollDice(){
         postTurnValue(playersTurn+1, playerCount);
 
       } else {
-        console.log("not my turn");
+        console.log("not my turn, its " + " turn");
       }
     }
 
@@ -409,11 +337,11 @@ function getUsername() {
 
 async function displayNewLocation(){
     //console.log("should display everyones location")
-    var newLocs = await generateNewLocs();
+    var [newLocs, colors] = await generateNewLocs();
     //console.log(newLocs)
     //console.log(oldLocs)
     for (let i in newLocs){
-        
+        let color = colors[i]
         let newLoc = newLocs[i]
         let oldLoc = oldLocs[i]
         //console.log("newLoc: "+newLoc)
@@ -423,11 +351,14 @@ async function displayNewLocation(){
             var plusOne = parseInt(i)+1
 
         var curLocString = oldLoc.toString()+"p"+plusOne.toString();
-        document.getElementById(curLocString).innerText = ""
+        //document.getElementById(curLocString).innerText = ""
+        document.getElementById(curLocString).innerHTML = ""
+
         //console.log("plusONe:" + plusOne)
         var newLocString = newLoc.toString()+"p"+plusOne.toString();
         //console.log("NLS"+newLocString)
-        document.getElementById(newLocString).innerText = i
+
+        document.getElementById(newLocString).innerHTML = '<div style="height: 10px; display: inline-block; margin-top: 2px ; width: 10px; background-color: '+color + '" ></div>'
         }
     }
 
@@ -442,20 +373,15 @@ setInterval(displayNewLocation,1000)
 async function generateNewLocs(){
     var list = await getPlayerList();
     var retList = []
+    var colorList = []
     for (let i in list){
         let player = list[i]
         retList.push(parseInt(player.position))
+        colorList.push(player.color)
     }
-    return retList
+    return [retList, colorList]
 }
 
-function displayInitialLocations(){
-    document.getElementById("0p1").innerText = "1";
-    document.getElementById("0p2").innerText = "2";
-    document.getElementById("0p3").innerText = "3";
-    document.getElementById("0p4").innerText = "4";
-
-}
 
 
 function incrementTurn(){
@@ -476,17 +402,28 @@ function incrementPlayerNum(){
     //.log(playersTurn);
 }
 
-async function updatePlayersTurnDisplay(){
-    var turnID = await fetchTurnFromServer();
-    fetch(IP_ADDRESS + 'get/username/' + turnID)
-    .then((response) => {return response.text();})
-    .then((text) => {
-        console.log("Username from server: " + text);
-        document.getElementById("pTurn").innerText = text;})
-    .catch((err) => {console.log("ERROR: cant get username using userID from server")})
-}
+function fetchUsernameFromServer(userId) {
+    return new Promise((resolve, reject) => {
+      fetch(IP_ADDRESS + 'get/username/' + userId)
+        .then(response => response.text())
+        .then(text => resolve(text))
+        .catch(err => reject(err));
+    });
+  }
+  
+  async function updatePlayersTurnDisplay() {
+    try {
+      var turnID = await fetchTurnFromServer();
+      var username = await fetchUsernameFromServer(turnID);
+      //console.log("Username from server: " + username);
+      document.getElementById("pTurn").innerText = username;
+    } catch (err) {
+      console.log("ERROR: can't get username using userID from server");
+    }
+  }
+  
 
-//setInterval(updatePlayersTurnDisplay, 1000);
+setInterval(updatePlayersTurnDisplay, 1000);
 
 function getPlayerCount(list) {
     return list ? list.length : 0; // Check if list is defined before accessing its length property
@@ -660,7 +597,7 @@ function getPlayers(){
                         div.id = item.color + '-player';
                         div.innerHTML = `
                         <h2>${item.username}</h2>
-                        <p class="balance"> <span class="dollar-sign">$</span>${currentPlayer.balance}</p>
+                        <p class="balance"> <span class="dollar-sign">$</span>${item.balance}</p>
                         <p>Properties: ${item.listOfOwnedCards}</p>
                         `;
                        
@@ -675,7 +612,7 @@ function getPlayers(){
 
 }
 
-getPlayers();
+setInterval(getPlayers, 1000);
 
 
 function getCurrentUrlSearchParams(){

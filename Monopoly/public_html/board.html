@@ -12,9 +12,11 @@
     <div class="board">      
       <button onclick="rollDice()">Roll Dice</button>
       <div id = "buyProp">
-        <button type="button" onclick="buyProp()">Buy Property!</button>
+        <p>Do you want to buy property?</p>
+        <button type="button" onclick="buyProperty()">Yes</button>
+        <button type="button" onclick="dontBuyProperty()">No</button>
       </div>
-      <span>Player </span><span id = "pTurn">1</span><span>'s turn</span>
+      <span>Player </span><span id = "pTurn"></span><span>'s turn</span>
       <ul id = "playerLIst">
           <li>p1 $<span id = "p1money">1500</span><span id = "p1props"></span></li>
           <li>p2 $<span id = "p2money">1500</span><span id = "p2props"></span></li>
