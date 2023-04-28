@@ -1,4 +1,17 @@
 
+var IP_ADDRESS = 'http://localhost:3000/';
+
+var oldLocs = []
+
+async function setMetaData(){
+    const playerList = await getPlayerList();
+    const playerCount = getPlayerCount(playerList);
+    oldLocs = Array(playerCount).fill(0);
+    console.log(oldLocs)
+
+}
+
+
 class Player {
     constructor(id) {
     this.money = 1500;
@@ -19,12 +32,12 @@ class Tile {
   }
 
 
-  let playersTurn = 1;
-  let curPlayersTurn = playersTurn;
+  //var playersTurn = 1;
+  //let curPlayersTurn = playersTurn;
     // let pList = ["index 0",new Player(1),new Player(2),new Player(3),new Player(4)] // create player list
   let pList = ["index 0"];
   let newLoc = 0;
-  displayInitialLocations();
+  //displayInitialLocations();
 //   let tList = [
 //     new Tile(0,0,0),
 //     new Tile(1,60,2),
@@ -96,22 +109,21 @@ p.then(response => {
  
 function fetchTurnFromServer(){
     // console.log('fetching turn info');
-    let p = fetch('/get/turn');
-    p.then(data => {
+    return fetch('/get/turn')
+    .then(data => {
         return data.json();
     })
     .then(turn => {
-        // console.log(turn);
-        //console.log(turn)
-        playersTurn = turn
-    });
-    p.catch(error => {
+        console.log("turn:" + turn)
+        return parseInt(turn);
+    })
+    .catch(error => {
     // Handle any errors here
-    console.error(error);
+    console.error("ERROR: fetching turn id from server");
   });
 }
 
-setInterval(fetchTurnFromServer, 2000);
+//setInterval(fetchTurnFromServer, 2000);
 
 
 async function  createTiles(){
@@ -276,6 +288,12 @@ function updateCards(){
     
 }
 
+function incrementTurnPromise() {
+    return new Promise(resolve => {
+      incrementTurn();
+      resolve();
+    });
+  }
 
 async function rollDice(){
     /*var d1 = Math.floor(Math.random() * 6)+1;
@@ -312,11 +330,63 @@ async function rollDice(){
  
     incrementTurn();   */
     var UserIDData = getUsername();
-    
+    var playersTurn = await fetchTurnFromServer();
+    console.log(playersTurn)
     var myID = await fetchClientIDFromServer(UserIDData);
+    myID = parseInt(myID,10);
+    const playerList = await getPlayerList();
+    const playerCount = getPlayerCount(playerList);
     console.log("My ID is: " + myID);
-    //if (playersTurn == myId)
-    // console.log(playersTurn) 
+    if (playersTurn == myID) {
+        //await incrementTurnPromise();
+        for (i in playerList){
+            let potentialPlayer = playerList[i];
+            
+            if (potentialPlayer.id == myID){
+                console.log(potentialPlayer)
+                var d1 = Math.floor(Math.random() * 6)+1;
+                var d2 = Math.floor(Math.random() * 6)+1;
+
+                console.log(d1+d2);
+
+                var newLocation = (potentialPlayer.position + d1 + d2) % 32
+                console.log("new location"+newLocation)
+                updatePlayerLocation(myID, newLocation);
+
+                
+                
+            }
+
+
+        }
+
+
+
+        postTurnValue(playersTurn+1, playerCount);
+
+      } else {
+        console.log("not my turn");
+      }
+    }
+
+async function updatePlayerLocation(myID, newLocation){
+    fetch('update/location/' + myID + '/' + newLocation)
+    .then((response) => {return response.text();})
+    .then((text) => {console.log(text);})
+    .catch((err) => {console.log("Cant update player location in server")});
+}
+
+
+async function postTurnValue(val, playerCount){
+    if (val >= playerCount){
+        val = 0;
+    }
+    fetch(IP_ADDRESS + 'update/turn/' + val)
+    .then((response) => {return response.text();})
+    .then((text) => {
+        console.log("new turn" + val);
+        console.log(text);})
+    .catch((err) => {console.log("cant update player turn")})
 }
 
 /**
@@ -337,13 +407,46 @@ function getUsername() {
 }
 
 
-function displayNewLocation(curLoc, newLoc){
-    var curLocString = curLoc.toString()+"p"+playersTurn.toString();
-    document.getElementById(curLocString).innerText = ""
-    var newLocString = newLoc.toString()+"p"+playersTurn.toString();
-    document.getElementById(newLocString).innerText = playersTurn
+async function displayNewLocation(){
+    //console.log("should display everyones location")
+    var newLocs = await generateNewLocs();
+    //console.log(newLocs)
+    //console.log(oldLocs)
+    for (let i in newLocs){
+        
+        let newLoc = newLocs[i]
+        let oldLoc = oldLocs[i]
+        //console.log("newLoc: "+newLoc)
+        //console.log("oldLoc: "+oldLoc)
+        if (newLoc != oldLoc){
+            //console.log("need to change location")
+            var plusOne = parseInt(i)+1
+
+        var curLocString = oldLoc.toString()+"p"+plusOne.toString();
+        document.getElementById(curLocString).innerText = ""
+        //console.log("plusONe:" + plusOne)
+        var newLocString = newLoc.toString()+"p"+plusOne.toString();
+        //console.log("NLS"+newLocString)
+        document.getElementById(newLocString).innerText = i
+        }
+    }
+
+
+    oldLocs = newLocs
     
 
+}
+
+setInterval(displayNewLocation,1000)
+
+async function generateNewLocs(){
+    var list = await getPlayerList();
+    var retList = []
+    for (let i in list){
+        let player = list[i]
+        retList.push(parseInt(player.position))
+    }
+    return retList
 }
 
 function displayInitialLocations(){
@@ -357,25 +460,46 @@ function displayInitialLocations(){
 
 function incrementTurn(){
     incrementPlayerNum();
-    while (pList[playersTurn].money <= 0){
-        incrementPlayerNum();
-    }
-    document.getElementById("pTurn").innerText = playersTurn
+    //while (pList[playersTurn].money <= 0){
+     //   incrementPlayerNum();
+    //}
+    //document.getElementById("pTurn").innerText = playersTurn
 }
+
+
 
 function incrementPlayerNum(){
     playersTurn += 1
-    if (playersTurn > 4){
+    if (playersTurn > getPlayerCount()){
         playersTurn = 1
     }
     //.log(playersTurn);
 }
 
+async function updatePlayersTurnDisplay(){
+    var turnID = await fetchTurnFromServer();
+    fetch(IP_ADDRESS + 'get/username/' + turnID)
+    .then((response) => {return response.text();})
+    .then((text) => {
+        console.log("Username from server: " + text);
+        document.getElementById("pTurn").innerText = text;})
+    .catch((err) => {console.log("ERROR: cant get username using userID from server")})
+}
 
+//setInterval(updatePlayersTurnDisplay, 1000);
 
+function getPlayerCount(list) {
+    return list ? list.length : 0; // Check if list is defined before accessing its length property
+  }
+  
 
-
-
+function getPlayerList() {
+    return fetch(IP_ADDRESS + 'get/players')
+      .then((response) => response.text())
+      .then((text) => JSON.parse(text))
+      .catch((err) => console.log("Can't get players list from server."));
+  }
+  
 
 
 

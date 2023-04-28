@@ -73,15 +73,17 @@ var User = mongoose.model("UserData", UserSchema);
 //.then(() => console.log('Deleted all user data'))
 //.catch((err) => console.log('Error deleting users:', err));
 
-//Turn.deleteMany({})
-//.then(() => console.log('Deleted all turn data'))
-//.catch((err) => console.log('Error deleting turns:', err));
-
-var t = new Turn ({
-  playerTurn: 1
+Turn.deleteMany({})
+.then(() => {
+  console.log('Deleted all turn data');
+  var t = new Turn ({
+    playerTurn: 0
+  })
+  t.save();
 })
- 
-t.save();
+.catch((err) => console.log('Error deleting turns:', err));
+
+
 
 app.listen(port, () => {
   console.log('Server has started.');
@@ -161,6 +163,21 @@ app.get('/set/ready/:username', (req, res) => {
 /**
  * Set user to ready
  */
+app.get('/get/username/:userID', (req, res) => {
+  let u = parseInt(req.params.userID);
+  User.findOne({id: u}).exec()
+    .then((user) => {
+      res.end(user.username.toString());
+    })
+    .catch((error) => {
+      console.log("ERROR: Finding username from userID");
+      res.end("ERROR: Finding Username")
+    });
+});
+
+/**
+ * Set user to ready
+ */
 app.get('/get/userID/:username', (req, res) => {
   let u = req.params.username;
   console.log("Username: " + u + " clicked Roll Dice.");
@@ -175,7 +192,30 @@ app.get('/get/userID/:username', (req, res) => {
     });
 });
 
-  
+/**
+ * Set user to ready
+ */
+app.get('/update/turn/:turnID', (req, res) => {
+  let playersTurn = req.params.turnID;
+  Turn.findOne({}).exec()
+    .then((turn) => {
+      turn.playerTurn = parseInt(playersTurn);
+      turn.save();
+      res.end("success");
+    })
+    .catch((error) => {
+      console.log("ERROR: Updating turn");
+      res.end("ERROR: Updating turn");
+    });
+});
+/**
+ * Set user to ready
+ */
+app.get('/getPlayers', (req, res) => {
+  User.find({}).exec()
+  .then((results) => {res.end(JSON.stringify(results));})
+  .catch((err) => {console.log("Cant get users list");})
+});
 
 /**
  * Sends usercolor back to the client
@@ -235,6 +275,25 @@ app.post('/update/turn', (req, res) => {
 
   res.end('Updated Player Turn')
   
+});
+
+app.get('/update/location/:userID/:location', (req, res) => {
+  console.log("enter update location");
+  const userID = parseInt(req.params.userID);
+  const location = parseInt(req.params.location);
+  User.findOne({id: userID}).exec()
+    .then((user) => {
+      if (user) {
+        user.position = location;
+        user.save();
+        res.send("Successfully updated player location.");
+      } else {
+        res.send("Couldnt update player location");
+      }
+    })
+    .catch((error) => { 
+      res.send("Couldnt update player location");
+    });
 });
 
 //  updates player data based on local changes
