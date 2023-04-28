@@ -17,15 +17,16 @@ td {
     border: 1px solid black;
     font-size: 10px;
     font-family: 'Times New Roman';
+    font-weight: bold;
     text-align: center;
     vertical-align: top;
 }
 
 table{
-
     margin-left: 100px;
-    margin-top: 50px;
+    margin-top: 30px;
     border-collapse: collapse;
+    border: 3px solid black;
 }
 
 /* design rules for player information */
@@ -162,4 +163,15 @@ p.balance{
   border-radius: 25px;
   width: 55px;
   height: 25px;
+}
+
+.turn {
+  font-size: 12px;
+}
+
+#roll_dice_btn {
+  height: 30px;
+  width: 45px;
+  font-size: 10px;  
+  border-radius: 3px;
 }

@@ -24,7 +24,7 @@ function addUser(){
         response.text().then(data => {
             if(data === 'SAVED SUCCESSFULLY'){
                 // alert('Account Created');
-                window.location.href = `/login.html`;
+                window.location.href = `/index.html`;
             }else if (data == "username is unavailable"){
                 showLoginMessage(data);
             }
