@@ -296,6 +296,66 @@ app.get('/update/location/:userID/:location', (req, res) => {
     });
 });
 
+
+/**
+ * get card object using cardID
+ */
+app.get('/get/property/:cardID', (req, res) => {
+  console.log("enter get prop");
+  const cardID = parseInt(req.params.cardID);
+  Card.findOne({id: cardID}).exec()
+    .then((card) => {
+      if (card) {
+        res.end(JSON.stringify(card));
+      } else {
+        res.send("Couldnt find card");
+      }
+    })
+    .catch((error) => { 
+      res.send("Couldnt find card");
+    });
+});
+
+
+/**
+ * get card object using cardID
+ */
+app.get('update/playerAndCard/:playerID/:newBalance/:cardID', (req, res) => {
+  console.log("enter update player and card");
+  const playerID = parseInt(req.params.playerID);
+  const newBalance = parseInt(req.params.newBalance);
+  const cardID = parseInt(req.params.cardID);
+
+  Card.findOne({id: cardID}).exec()
+    .then((card) => {
+      if (card) {
+        card['ownerID'] = playerID;
+        card.save();
+        res.end('Updated ownerID in Card')
+      } else {
+        res.send("Couldnt set ownerID in card");
+      }
+    })
+    .catch((error) => { 
+      res.send("Couldnt set ownerID in card");
+    });
+
+  User.findOne({id: playerID}).exec()
+  .then((user) => {
+    if (user){
+      user['balance'] = newBalance;  // change balance
+      user['listOfCardsOwned'].push(cardID);  // add cardID to list of cards owned
+      user.save();
+      res.send('Updated user balance and list of cards owned');
+    } else {
+      res.send("Couldnt update User ");
+    }
+  })
+  .catch((err) => {
+    res.send("Couldnt update User");
+  })
+});
+
 //  updates player data based on local changes
 
 /*
@@ -445,8 +505,8 @@ function createAllCards(){
   let cardData = [
     [0,0,0],  // cardID, price, base rent
     [1,60,2],
-    [2,0,0],
-    [3,60,4],
+    [2,60,4],
+    [3,0,0],
     [4,200,50],
     [5,100,6],
     [6,100,6],
