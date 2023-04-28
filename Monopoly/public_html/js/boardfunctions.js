@@ -1,3 +1,4 @@
+//boardfunctions
 
 var IP_ADDRESS = 'http://localhost:3000/';
 
@@ -281,8 +282,6 @@ async function rollDice(){
 
                 updatePlayerLocation(myID, newLocation);
 
-
-
                 
                 
             }
@@ -291,68 +290,13 @@ async function rollDice(){
         }
 
 
-        // wait 5s to buy property and then increment the turn
-        setTimeout(() => {
-            postTurnValue(playersTurn + 1, playerCount);
-          }, 20000);
-          
+
+        postTurnValue(playersTurn+1, playerCount);
 
       } else {
         console.log("not my turn, its " + " turn");
       }
     }
-
-
-function getProperty(index){
-    return fetch(IP_ADDRESS + 'get/property/' + index)
-    .then((response) => {return response.text();})
-    .then((text) => {return JSON.parse(text);})
-    .catch((err) => {console.log("ERROR: getting property obj from server using ID")})
-}
-
-
-function checkProperty(player,newLocation){
-    /*if (tList[newLoc].owner == 0 && tList[newLoc].price > 0){
-        pList[curPlayersTurn].money = pList[curPlayersTurn].money - tList[newLoc].price;
-        var moneyString = "p"+curPlayersTurn.toString()+"money";
-        console.log(moneyString)
-        document.getElementById(moneyString).innerText = pList[curPlayersTurn].money
-        tList[newLoc].owner = curPlayersTurn;
-        var displayString = "p"+curPlayersTurn.toString()+"props";
-        var propString = " " + newLoc.toString()
-        document.getElementById(displayString).innerText += propString
-
-    }
-    else {
-        console.log("property cannot be bought")
-    }
-    console.log("porp bot")*/
-    getProperty(newLocation)
-    .then(data => {
-        // assign the resolved value to a variable
-        const curProperty = data;
-        console.log(curProperty);
-        if (curProperty.ownerID == null && curProperty.price > 0){
-            console.log("this property is for sale")
-            var newBalance = player.balance - curProperty.price
-            console.log(newBalance)
-            //update player.balance
-            //owner of card is player.id
-            //append to player.listOfCardsOwned
-            updatePlayerAndCard(player.id, newBalance, curProperty.id);
-            
-    }
-    })
-    .catch(err => console.log("ERROR: getting property obj from server using ID"));
-
-}
-
-function updatePlayerAndCard(playerID, newBalance, propertyID){
-    fetch('update/playerAndCard/' + playerID + '/' + newBalance + '/' + propertyID)
-    .then((response) => {return response.text();})
-    .then((text) => {console.log(text);})
-    .catch((err) => {console.log("Cant update player location in server")});
-}
 
 async function updatePlayerLocation(myID, newLocation){
     fetch('update/location/' + myID + '/' + newLocation)
