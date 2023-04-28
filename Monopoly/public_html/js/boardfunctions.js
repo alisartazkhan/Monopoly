@@ -351,7 +351,15 @@ async function rollDice(){
 
                 var newLocation = (potentialPlayer.position + d1 + d2) % 32
                 console.log("new location"+newLocation)
+
+                checkProperty(newLocation)
+
+
+
+
                 updatePlayerLocation(myID, newLocation);
+
+
 
                 
                 
@@ -368,6 +376,25 @@ async function rollDice(){
         console.log("not my turn");
       }
     }
+
+function checkProperty(newLocation){
+    if (tList[newLoc].owner == 0 && tList[newLoc].price > 0){
+        pList[curPlayersTurn].money = pList[curPlayersTurn].money - tList[newLoc].price;
+        var moneyString = "p"+curPlayersTurn.toString()+"money";
+        console.log(moneyString)
+        document.getElementById(moneyString).innerText = pList[curPlayersTurn].money
+        tList[newLoc].owner = curPlayersTurn;
+        var displayString = "p"+curPlayersTurn.toString()+"props";
+        var propString = " " + newLoc.toString()
+        document.getElementById(displayString).innerText += propString
+
+    }
+    else {
+        console.log("property cannot be bought")
+    }
+    console.log("porp bot")
+}
+
 
 async function updatePlayerLocation(myID, newLocation){
     fetch('update/location/' + myID + '/' + newLocation)
