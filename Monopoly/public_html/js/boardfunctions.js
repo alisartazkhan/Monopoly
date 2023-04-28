@@ -223,39 +223,7 @@ function incrementTurnPromise() {
   }
 
 async function rollDice(){
-    /*var d1 = Math.floor(Math.random() * 6)+1;
-    var d2 = Math.floor(Math.random() * 6)+1;
-    //console.log(d1+d2);
-    var curLoc = pList[playersTurn].pos
-    newLoc = (curLoc + d1 + d2) % 32
 
-    document.getElementById("eventLog").innerText = "Player "+playersTurn+" rolled a "+(d1+d2)
-    displayNewLocation(curLoc,newLoc)
-    pList[playersTurn].pos = newLoc;
-    console.log("P"+playersTurn+"rolled a " +(d1+d2))
-    console.log("Locations are " + pList[1].pos + " "+ pList[2].pos + " "+ pList[3].pos + " "+ pList[4].pos)
-
-    curPlayersTurn = playersTurn
-
-    if ((tList[newLoc].owner != curPlayersTurn && tList[newLoc].owner != 0) && tList[newLoc].baseRent > 0){
-        //document.getElementById("buyProp").innerHTML = '<button type="button" onclick="buyProp()">Buy Property!</button><button type="button" onclick="dontBuyProp()">Don\'t Buy Property!</button>';
-        //document.getElementById("buyProp").innerHTML = '<button type="button onclick="change()">Buy Property!</button>';
-        console.log("rent owed")
-        var rent = tList[newLoc].baseRent
-        var owner = pList[tList[newLoc].owner]
-        var renter = pList[curPlayersTurn]
-        renter.money -= rent;
-        owner.money += rent;
-
-        var rentMoneyString = "p"+renter.id.toString()+"money";
-        document.getElementById(rentMoneyString).innerText = renter.money
-        var ownerMoneyString = "p"+owner.id.toString()+"money";
-        document.getElementById(ownerMoneyString).innerText = owner.money
-
-    }
-
- 
-    incrementTurn();   */
     var UserIDData = getUsername();
     var playersTurn = await fetchTurnFromServer();
     //console.log("It is now player "+playersTurn+'s turn')
@@ -277,13 +245,14 @@ async function rollDice(){
 
 
                 var newLocation = (potentialPlayer.position + d1 + d2) % 32
+
+
                 //console.log("new location"+newLocation)
                 console.log("Rolled a "+total+ " to put them at "+ newLocation);
 
-                updatePlayerLocation(myID, newLocation);
 
-                
-                
+                updatePlayerLocation(myID, newLocation);
+                await checkProperty(potentialPlayer, newLocation)
             }
 
 
@@ -297,6 +266,108 @@ async function rollDice(){
         console.log("not my turn, its " + " turn");
       }
     }
+
+/**
+ * Fetches the JSON card OBJ
+ * @param {} index 
+ * @returns 
+ */
+function getProperty(index){
+    return fetch(IP_ADDRESS + 'get/property/' + index)
+    .then((response) => {return response.text();})
+    .then((text) => {return JSON.parse(text);})
+    .catch((err) => {console.log("ERROR: getting property obj from server using ID")})
+}
+
+
+/**
+ * Checks if property is available and for sale and allows user to buy prop or pay rent
+ * @param {*} player 
+ * @param {*} newLocation 
+ * @returns {Promise<boolean>} resolves to true if the user chooses to buy the property, false otherwise
+ */
+async function checkProperty(player, newLocation) {
+    return getProperty(newLocation)
+      .then(data => {
+        // assign the resolved value to a variable
+        const curProperty = data;
+        console.log(curProperty);
+        // checking if property is for sale
+        if (curProperty.ownerID == null && curProperty.price > 0) {
+          console.log("this property is for sale")
+          document.getElementById('buyProp').style.display = 'inline-block'; // display the prompt
+          return new Promise((resolve, reject) => {
+            
+            document.getElementById('yes_btn').addEventListener('click', () => {
+              console.log('User chose to buy the property');
+              document.getElementById('buyProp').style.display = 'none'; // hide the prompt
+              resolve(true);
+                let playerID = player.id
+                let newBalance = player.balance - curProperty.price
+                let propertyID = curProperty.id
+                updatePlayerAndCard(playerID, newBalance, propertyID)
+                console.log("property was bought")
+            });
+            
+            document.getElementById('no_btn').addEventListener('click', () => {
+              console.log('User chose not to buy the property');
+              document.getElementById('buyProp').style.display = 'none'; // hide the prompt
+              resolve(false);
+            });
+
+          });
+        } else {
+          console.log("this property isn't for sale");
+          document.getElementById('buyProp').style.display = 'none';
+          if (curProperty.price == 0){
+            console.log("This is not a property")
+          }
+          else if(curProperty.ownerID != player.id){
+                console.log("you owe rent")
+                let newBalance = player.balance - getRent(curProperty)
+                console.log(newBalance)
+                fetch("/update/balance/" + curProperty.ownerID + '/' + player.id + '/' + getRent(curProperty))
+                .then((response) => {return response.text();})
+                .then((text) => {console.log("You paid rent to ownerID: " + curProperty.ownerID) })
+                .catch(() => {console.log('cant pay rent')})
+
+
+          }
+          else {
+            console.log("you own this prop")
+
+          }
+          return Promise.resolve(false);
+
+        }
+      })
+      .catch(err => {
+        console.log("ERROR: getting property obj from server using ID")
+        return Promise.reject(err);
+      });
+  }
+
+  function getRent(prop){
+    return prop.rent;
+  }
+    
+    function updatePlayerAndCard(playerID, newBalance, propertyID){
+        fetch('update/pac/' + playerID + '/' + newBalance + '/' + propertyID)
+        .then((response) => {return response.text();})
+        .then((text) => {console.log(text);})
+        .catch((err) => {console.log("Cant update player and card info in server")});
+    }
+
+
+
+    function waitForClick(buttonId1, buttonId2) {
+        return new Promise(resolve => {
+          const button1 = document.getElementById(buttonId1);
+          const button2 = document.getElementById(buttonId2);
+          button1.addEventListener('click', () => resolve(button1), { once: true });
+          button2.addEventListener('click', () => resolve(button2), { once: true });
+        });
+      }
 
 async function updatePlayerLocation(myID, newLocation){
     fetch('update/location/' + myID + '/' + newLocation)
@@ -562,7 +633,7 @@ closeButton.addEventListener('click', togglePopup);
  * Updates the board.html with player information from the server
  */
 function getPlayers(){
-    console.log(getCurrentUrlSearchParams());
+    // console.log(getCurrentUrlSearchParams());
     let url = '/get/players';
     const xhr = new XMLHttpRequest();
     xhr.open('GET', url);
@@ -586,7 +657,7 @@ function getPlayers(){
                     div.innerHTML = `
                     <h2>${currentPlayer.username}</h2>
                     <p class="balance"> <span class="dollar-sign">$</span>${currentPlayer.balance}</p>
-                    <p>Properties: ${currentPlayer.listOfOwnedCards}</p>
+                    <p>Properties: ${currentPlayer.listOfCardsOwned}</p>
                     `;
                     outputArea.appendChild(div);
 
@@ -599,7 +670,7 @@ function getPlayers(){
                         div.innerHTML = `
                         <h2>${item.username}</h2>
                         <p class="balance"> <span class="dollar-sign">$</span>${item.balance}</p>
-                        <p>Properties: ${item.listOfOwnedCards}</p>
+                        <p>Properties: ${item.listOfCardsOwned}</p>
                         `;
                        
                         outputArea.appendChild(div);

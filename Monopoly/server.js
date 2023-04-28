@@ -45,7 +45,7 @@ var CardSchema = new Schema({
   name: String,
   price: Number,
   isPurchased: Boolean,
-  ownerID: String,    // id val of User Object
+  ownerID: Number,    // id val of User Object
   hasSet: Boolean,    // if owner purchased the all the cards in the set
   rent: Number,
   visitors: [Number], // list of User id values currently on the card
@@ -210,13 +210,99 @@ app.get('/update/turn/:turnID', (req, res) => {
       res.end("ERROR: Updating turn");
     });
 });
+
+// /**
+//  * Set user to ready
+//  */
+// app.get('/getPlayers', (req, res) => {
+//   User.find({}).exec()
+//   .then((results) => {res.end(JSON.stringify(results));})
+//   .catch((err) => {console.log("Cant get users list");})
+// });
+
 /**
- * Set user to ready
+ * get card object using cardID
  */
-app.get('/getPlayers', (req, res) => {
-  User.find({}).exec()
-  .then((results) => {res.end(JSON.stringify(results));})
-  .catch((err) => {console.log("Cant get users list");})
+app.get('/get/property/:cardID', (req, res) => {
+  console.log("enter get prop");
+  const cardID = parseInt(req.params.cardID);
+  Card.findOne({id: cardID}).exec()
+    .then((card) => {
+      if (card) {
+        res.end(JSON.stringify(card));
+      } else {
+        res.send("Couldnt find card");
+      }
+    })
+    .catch((error) => { 
+      res.send("Couldnt find card");
+    });
+});
+
+/**
+ * updates player obj and card obj with new balance, and updates listOfCardsOwned, and ownerID in Card obj
+ */
+app.get('/update/pac/:playerID/:newBalance/:cardID', (req, res) => {
+  console.log("enter update player and card");
+  const playerID = parseInt(req.params.playerID);
+  const newBalance = parseInt(req.params.newBalance);
+  const cardID = parseInt(req.params.cardID);
+
+  Card.findOne({id: cardID}).exec()
+    .then((card) => {
+      if (card) {
+        card['ownerID'] = playerID;
+        card.save();
+        console.log('Updated ownerID in Card')
+      } else {
+        console.log("Couldnt set ownerID in card")
+      }
+    })
+    .catch(() => { 
+      console.log("Couldnt set ownerID in card")
+    });
+
+  User.findOne({id: playerID}).exec()
+  .then((user) => {
+    if (user){
+      user['balance'] = newBalance;  // change balance
+      user['listOfCardsOwned'].push(cardID);  // add cardID to list of cards owned
+      user.save();
+      console.log("Saved user balance and list of cards owned")
+      res.send('Updated user balance and list of cards owned');
+    } else {
+      console.log("Couldnt update user balance and list of cards owned")
+      res.send("Couldnt update User ");
+    }
+  })
+  .catch((err) => {
+    console.log("Couldnt update user balance and list of cards owned")
+    res.send("Couldnt update User");
+  })
+});
+
+/**
+ * 
+ */
+app.get('/update/balance/:to/:from/:rent', (req, res) => {
+  const toID = parseInt(req.params.to);
+  const fromID = parseInt(req.params.from);
+  const rent = parseInt(req.params.rent)
+
+  User.findOne({id: toID}).exec()
+  .then((user) => {
+    user['balance'] = user.balance + rent;
+    user.save();
+    User.findOne({id: fromID}).exec()
+    .then((user2)=> {
+      user2['balance'] = user2.balance - rent;
+      user2.save();
+    })
+    .catch((error) => {console.log('cant pay rent to owner in server')})
+  })
+  .catch((error) => {
+    res.end("ERROR: get card using index")
+  });
 });
 
 /**
@@ -391,7 +477,7 @@ app.post('/add/user/', (req, res) => {
         position: 0,
         color: user_colors[user_Id % user_colors.length],
         status: "NR",
-        listOfCardsOwned: [10],
+        listOfCardsOwned: [],
         numberOfHouses: 0
       });
       let p1 = newUser.save();
@@ -427,6 +513,9 @@ app.get('/account/login/:USERNAME/:PASSWORD', (req, res) => {
         if (hashedPassword === storedPasswordWithoutSalt) {
           authenticated = true;
           foundUser['status'] = "NR";
+          foundUser['balance'] = 1500;
+          foundUser['position'] = 0;
+          foundUser['listOfCardsOwned'] = [];
           foundUser.save();
         }
       });
@@ -447,8 +536,8 @@ function createAllCards(){
   let cardData = [
     [0,0,0],  // cardID, price, base rent
     [1,60,2],
-    [2,0,0],
-    [3,60,4],
+    [2,60,4],
+    [3,0,0],
     [4,200,50],
     [5,100,6],
     [6,100,6],
