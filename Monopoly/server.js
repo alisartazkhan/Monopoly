@@ -35,8 +35,6 @@ const Turn = mongoose.model('Turn', TurnSchema);
 
 
 
-
-
 var CardSchema = new Schema({ 
   id: Number,  // index in board list on client side
   color: String,
