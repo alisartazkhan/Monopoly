@@ -223,6 +223,8 @@ function incrementTurnPromise() {
   }
 
 async function rollDice(){
+    // disable roll dice button
+    document.getElementById("roll_dice_btn").disabled = true;
 
     var UserIDData = getUsername();
     var playersTurn = await fetchTurnFromServer();
@@ -244,7 +246,16 @@ async function rollDice(){
                 var total = d1 + d2
 
 
-                var newLocation = (potentialPlayer.position + d1 + d2) % 32
+                var newLocation = (potentialPlayer.position + total) % 32
+
+                if (newLocation < potentialPlayer.position){
+                  collectGo(potentialPlayer.id)
+                }
+
+                if (newLocation == 24){
+                    
+                  newLocation = 8
+                }
 
 
                 //console.log("new location"+newLocation)
@@ -258,14 +269,25 @@ async function rollDice(){
 
         }
 
-
-
+        // enable roll dice button
+        document.getElementById("roll_dice_btn").disabled = false;
+        
         postTurnValue(playersTurn+1, playerCount);
 
-      } else {
+    } else {
         console.log("not my turn, its " + " turn");
-      }
+
+        // enable roll dice button
+        document.getElementById("roll_dice_btn").disabled = false;
     }
+}
+
+
+function collectGo(userID) {
+  fetch(IP_ADDRESS + 'update/balance/go/' + userID)
+  .then((response) => {return response.text();})
+  .catch((err) => {console.log("ERROR: adding money from passing go")})
+}
 
 /**
  * Fetches the JSON card OBJ
@@ -657,8 +679,8 @@ function getPlayers(){
                     div.innerHTML = `
                     <h2>${currentPlayer.username}</h2>
                     <p class="balance"> <span class="dollar-sign">$</span>${currentPlayer.balance}</p>
-                    <p>Properties: ${currentPlayer.listOfCardsOwned}</p>
-                    `;
+                    <p>Properties: ${currentPlayer.listOfCardsOwned.sort((a, b) => a - b).join(', ')}</p>`;
+
                     outputArea.appendChild(div);
 
                 // puts the remaining players
@@ -670,7 +692,7 @@ function getPlayers(){
                         div.innerHTML = `
                         <h2>${item.username}</h2>
                         <p class="balance"> <span class="dollar-sign">$</span>${item.balance}</p>
-                        <p>Properties: ${item.listOfCardsOwned}</p>
+                        <p>Properties: ${item.listOfCardsOwned.sort((a, b) => a - b).join(', ')}</p>
                         `;
                        
                         outputArea.appendChild(div);

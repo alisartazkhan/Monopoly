@@ -12,14 +12,11 @@
 </head>
   <body onload="setMetaData()">
     <div class="board">      
-      <button onclick="rollDice()" id="roll_dice_btn">Roll Dice</button> <br>
       <div id = "buyProp" style="display: none;">
         <p>Do you want to buy property?</p>
         <button type="button" id="yes_btn">Yes</button>
         <button type="button" id="no_btn">No</button>
-      </div> <br> <br>
-      <span>Player </span><span id = "pTurn"></span><span>'s turn</span>
-      <div id = "eventLog"></div>
+      </div>
       <table>
           <tr>
               <td id = '0' class = 'space'>Go<br>Collect $200<br><span id = "0p1"></span><span id = "0p2"></span><span id = "0p3"></span><span id = "0p4"></span></td>
@@ -39,17 +36,19 @@
           </tr>
           <tr>
             <td id = '30' class = 'space'>Lux Tax<br>Pay $100<br><span id = "30p1"></span><span id = "30p2"></span><span id = "30p3"></span><span id = "30p4"></span></td>
-            <td> </td><td> </td><td> </td><td> </td> <td> </td><td> </td><td> </td>
+            <td> </td><td> </td><td> </td><td></td> <td> </td><td> </td><td> </td>
             <td id = '10' class = 'space'>States<br>$140<br><span id = "10p1"></span><span id = "10p2"></span><span id = "10p3"></span><span id = "10p4"></span></td>
           </tr>
           <tr>
             <td id = '29' class = 'space'>Park P<br>$350<br><span id = "29p1"></span><span id = "29p2"></span><span id = "29p3"></span><span id = "29p4"></span></td>
-            <td> </td><td> </td><td> </td><td> </td> <td> </td><td> </td><td> </td>
+            <td> </td><td> </td><td> </td><td>     <span>Turn: </span> <span id = "pTurn"></span>
+            </td> <td> </td><td> </td><td> </td>
             <td id = '11' class = 'space'>Virginia<br>$160<br><span id = "11p1"></span><span id = "11p2"></span><span id = "11p3"></span><span id = "11p4"></span></td>
           </tr>
           <tr>
             <td id = '28' class = 'space'>Short RR<br>$200<br><span id = "28p1"></span><span id = "28p2"></span><span id = "28p3"></span><span id = "28p4"></span></td>
-            <td> </td><td> </td><td> </td><td> </td> <td> </td><td> </td><td> </td>
+            <td> </td><td> </td><td> </td><td>      <button onclick="rollDice()" id="roll_dice_btn">Roll Dice</button> <br>
+            </td> <td> </td><td> </td><td> </td>
             <td id = '12' class = 'space'>Penn RR<br>$200<br><span id = "12p1"></span><span id = "12p2"></span><span id = "12p3"></span><span id = "12p4"></span></td>
           </tr> 
           <tr>

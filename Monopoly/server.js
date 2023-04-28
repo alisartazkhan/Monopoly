@@ -265,11 +265,13 @@ app.get('/update/pac/:playerID/:newBalance/:cardID', (req, res) => {
   User.findOne({id: playerID}).exec()
   .then((user) => {
     if (user){
+      if (!user['listOfCardsOwned'].includes(cardID)){
       user['balance'] = newBalance;  // change balance
       user['listOfCardsOwned'].push(cardID);  // add cardID to list of cards owned
       user.save();
       console.log("Saved user balance and list of cards owned")
       res.send('Updated user balance and list of cards owned');
+      }
     } else {
       console.log("Couldnt update user balance and list of cards owned")
       res.send("Couldnt update User ");
@@ -318,6 +320,21 @@ app.get('/get/user_color/:username', (req, res) => {
   })
   .catch((error) => {
     res.end("ERROR: get card using index")
+  });
+});
+
+/**
+ * Sends usercolor back to the client
+ */
+app.get('/update/balance/go/:userID', (req, res) => {
+  let u = req.params.userID;
+  User.findOne({id: u}).exec()
+  .then((user) => {
+    user['balance'] = user['balance'] + 200
+    user.save()
+  })
+  .catch((error) => {
+    res.end("ERROR: adding money from passing go")
   });
 });
 
