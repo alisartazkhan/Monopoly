@@ -239,48 +239,59 @@ app.get('/get/property/:cardID', (req, res) => {
     });
 });
 
-/**
- * updates player obj and card obj with new balance, and updates listOfCardsOwned, and ownerID in Card obj
- */
-app.get('/update/pac/:playerID/:newBalance/:cardID', (req, res) => {
+app.get('/update/pac/:playerID/:newBalance/:cardID', async (req, res) => {
   console.log("enter update player and card");
   const playerID = parseInt(req.params.playerID);
   const newBalance = parseInt(req.params.newBalance);
   const cardID = parseInt(req.params.cardID);
 
-  Card.findOne({id: cardID}).exec()
-    .then((card) => {
-      if (card) {
-        card['ownerID'] = playerID;
-        card.save();
-        console.log('Updated ownerID in Card')
-      } else {
-        console.log("Couldnt set ownerID in card")
-      }
-    })
-    .catch(() => { 
-      console.log("Couldnt set ownerID in card")
-    });
+  try {
+    const card = await Card.findOne({id: cardID}).exec();
+    if (card) {
+      card['ownerID'] = playerID;
+      card.save();
+      let isMonopoly = true;
+      await Promise.all(card.otherCardsInSet.map(async (cID) => {
+        const card2 = await Card.findOne({id: cID}).exec();
+        if (card2.id != card.id && card2.ownerID != card.ownerID) {
+          isMonopoly = false;
+        }
+      }));
 
-  User.findOne({id: playerID}).exec()
-  .then((user) => {
-    if (user){
-      if (!user['listOfCardsOwned'].includes(cardID)){
-      user['balance'] = newBalance;  // change balance
-      user['listOfCardsOwned'].push(cardID);  // add cardID to list of cards owned
-      user.save();
-      console.log("Saved user balance and list of cards owned")
-      res.send('Updated user balance and list of cards owned');
+      if (isMonopoly){
+        console.log("Bought a monopoly")
+        await Promise.all(card.otherCardsInSet.map(async (cID) => {
+          const card2 = await Card.findOne({id: cID}).exec();
+          card2.hasSet = true;
+          card2.save();
+        }));
+
+      } else{
+        console.log("Not a monopoly");
+        }
+      console.log('Updated ownerID in Card');
+      console.log('isMonopoly:', isMonopoly); // log isMonopoly after the loop is done
+    } else {
+      console.log("Couldn't set ownerID in card");
+    }
+
+    const user = await User.findOne({id: playerID}).exec();
+    if (user) {
+      if (!user['listOfCardsOwned'].includes(cardID)) {
+        user['balance'] = newBalance;  // change balance
+        user['listOfCardsOwned'].push(cardID);  // add cardID to list of cards owned
+        await user.save();
+        console.log("Saved user balance and list of cards owned");
+        res.send('Updated user balance and list of cards owned');
       }
     } else {
-      console.log("Couldnt update user balance and list of cards owned")
-      res.send("Couldnt update User ");
+      console.log("Couldn't update user balance and list of cards owned");
+      res.send("Couldn't update User");
     }
-  })
-  .catch((err) => {
-    console.log("Couldnt update user balance and list of cards owned")
-    res.send("Couldnt update User");
-  })
+  } catch (err) {
+    console.log("Couldn't update card or user");
+    res.send("Couldn't update card or user");
+  }
 });
 
 /**
@@ -551,51 +562,51 @@ app.get('/account/login/:USERNAME/:PASSWORD', (req, res) => {
 function createAllCards(){
   console.log('Recreating all the cards');
   let cardData = [
-    [0,0,0],  // cardID, price, base rent
-    [1,60,2],
-    [2,60,4],
-    [3,0,0],
-    [4,200,50],
-    [5,100,6],
-    [6,100,6],
-    [7,120,8],
-    [8,0,0],
-    [9,140,10],
-    [10,140,10],
-    [11,160,12],
-    [12,200,50],
-    [13,180,14],
-    [14,180,14],
-    [15,200,16],
-    [16,0,0],
-    [17,220,18],
-    [18,220,18],
-    [19,240,20],
-    [20,200,50],
-    [21,260,22],
-    [22,260,22],
-    [23,280,24],
-    [24,0,0],
-    [25,300,26],
-    [26,300,26],
-    [27,320,28],
-    [28,200,50],
-    [29,350,35],
-    [30,0,0],
-    [31,400,50]
+    [0,0,0,[],null],  // cardID, price, base rent, cards in set,
+    [1,60,2,[1,2],"Medi"],
+    [2,60,4,[1,2],"Baltic"],
+    [3,0,0,[],null],
+    [4,200,50,[4,12,20,28],"Read RR"],
+    [5,100,6,[5,6,7],"Oriental"],
+    [6,100,6,[5,6,7],"Vermont"],
+    [7,120,8,[5,6,7],"Conn"],
+    [8,0,0,[],null],
+    [9,140,10,[9,10,11],"Charles"],
+    [10,140,10,[9,10,11],"States"],
+    [11,160,12,[9,10,11],"Virginia"],
+    [12,200,50,[4,12,20,28],"Penn RR"],
+    [13,180,14,[13,14,15],"James"],
+    [14,180,14,[13,14,15],"Tenn"],
+    [15,200,16,[13,14,15],"New York"],
+    [16,0,0,[],null],
+    [17,220,18,[17,18,19],"Kent"],
+    [18,220,18,[17,18,19],"Indiana"],
+    [19,240,20,[17,18,19],"Ill"],
+    [20,200,50,[4,12,20,28],"B&O RR"],
+    [21,260,22,[21,22,23],"Atl"],
+    [22,260,22,[21,22,23],"Vent"],
+    [23,280,24,[21,22,23],"Marvin"],
+    [24,0,0,[],null],
+    [25,300,26,[25,26,27],"Pac"],
+    [26,300,26,[25,26,27],"North"],
+    [27,320,28,[25,26,27],"Penns"],
+    [28,200,50,[4,12,20,28],"Short RR"],
+    [29,350,35,[29,31],"Park P"],
+    [30,0,0,[],null],
+    [31,400,50,[29,31],"Board"]
   ]
   for(let i=0; i<cardData.length; i++ ){
     let c = new Card({
       id: cardData[i][0],
       color: null,
-      name: null,
+      name: cardData[i][4],
       price: cardData[i][1],
       isPurchased: null,
       ownerID: null,    // id val of User Object
-      hasSet: null,    // if owner purchased the all the cards in the set
+      hasSet: false,    // if owner purchased the all the cards in the set
       rent: cardData[i][2],
       visitors: [], // list of User id values currently on the card
-      otherCardsInSet: [],  // id vals of other Cards in set
+      otherCardsInSet: cardData[i][3],  // id vals of other Cards in set
       numberOfHouses: null, 
       houseRentMultiplier: null
     });

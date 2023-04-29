@@ -246,7 +246,7 @@ async function rollDice(){
                 var total = d1 + d2
 
 
-                var newLocation = (potentialPlayer.position + total) % 32
+                var newLocation = (potentialPlayer.position + 1) % 32
 
                 if (newLocation < potentialPlayer.position){
                   collectGo(potentialPlayer.id)
@@ -329,6 +329,8 @@ async function checkProperty(player, newLocation) {
                 let propertyID = curProperty.id
                 updatePlayerAndCard(playerID, newBalance, propertyID)
                 console.log("property was bought")
+
+
             });
             
             document.getElementById('no_btn').addEventListener('click', () => {
@@ -368,6 +370,8 @@ async function checkProperty(player, newLocation) {
         return Promise.reject(err);
       });
   }
+
+
 
   function getRent(prop){
     return prop.rent;
