@@ -211,14 +211,6 @@ app.get('/update/turn/:turnID', (req, res) => {
     });
 });
 
-// /**
-//  * Set user to ready
-//  */
-// app.get('/getPlayers', (req, res) => {
-//   User.find({}).exec()
-//   .then((results) => {res.end(JSON.stringify(results));})
-//   .catch((err) => {console.log("Cant get users list");})
-// });
 
 /**
  * get card object using cardID
