@@ -71,9 +71,9 @@ var UserSchema = new Schema({
 var User = mongoose.model("UserData", UserSchema);
 
 // delete all documents from the 'User' collection
-//User.deleteMany({})
-//.then(() => console.log('Deleted all user data'))
-//.catch((err) => console.log('Error deleting users:', err));
+User.deleteMany({})
+.then(() => console.log('Deleted all user data'))
+.catch((err) => console.log('Error deleting users:', err));
 
 Turn.deleteMany({})
 .then(() => {
@@ -237,6 +237,42 @@ app.get('/get/property/:cardID', (req, res) => {
     .catch((error) => { 
       res.send("Couldnt find card");
     });
+});
+
+
+/**
+ * get card objects that belong to a given player
+ */
+app.get('/get/properties/:playerID', (req, res) => {
+  console.log("sending player properties");
+  const playerID = parseInt(req.params.playerID);
+  let properties = [];
+  let p1 = User.findOne({id:playerID}).exec();
+  let total = 0;
+  p1.then((result) => {
+    let propertyIds = result.listOfCardsOwned;
+    console.log(propertyIds);
+    for(let i=0; i< propertyIds.length; i++){
+      let p  = Card.findOne({id:propertyIds[i]}).exec();
+      p.then((result) => {
+        properties.push(result);
+        total += 1; // counts the # of properties of a player
+        if( total === propertyIds.length){
+          res.end(  JSON.stringify(properties, undefined, 2) );
+        }
+      });
+
+      p.catch((error) => {
+        console.log(error);
+          res.end('FAILED TO RETURN PLAYER PROPERTIES');
+      });
+    }
+  });
+
+  p1.catch((error) => {
+    console.log(error);
+    res.end('FAILED TO RETURN PLAYER PROPERTIES');
+  });
 });
 
 /**

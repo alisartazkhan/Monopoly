@@ -466,6 +466,7 @@ setInterval(displayNewLocation,1000)
 
 async function generateNewLocs(){
     var list = await getPlayerList();
+    await displayPlayers(list);
     var retList = []
     var colorList = []
     for (let i in list){
@@ -651,62 +652,149 @@ closeButton.addEventListener('click', togglePopup);
 
 
 
+
+async function getPlayers(){
+    let url = '/get/players';
+    const properties = await fetch(url);
+    const data = await properties.json();
+    return data;
+}
+
+/**
+ * Fetches the JSON card objs that belongs to a given player
+ * @param {} index 
+ * @returns 
+ */
+async function getPlayerProperties(playerID){
+    let url = IP_ADDRESS + 'get/properties/';
+    const results = await fetch( url+ playerID);
+    const properties = await results.json();
+    return properties;
+}
+
+
+function createPropertiesWindow(properties){
+    let propertiesWindow = document.getElementById('property-data-popup');
+    propertiesWindow.innerHTML = '<div class="close-button" id="close-property-window">&times;</div>';
+    let cardList = document.createElement('div');
+    cardList.classList.add('card-list');
+    if(properties !== null){
+        for(let i=0; i< properties.length; i++){
+            let card = document.createElement('div');
+            card.classList.add('card');
+            if(properties[i].color !== null){
+                card.innerHTML = `
+                    <h3 style="background:${properties[i].color};">TITLE</h3>
+                    <p>color: ${properties[i].color}</p>
+                    <p>price: ${properties[i].price}</p>
+                    <p>RENT TO DO</p>
+                `
+            }else{
+                card.innerHTML = `
+                    <h3>TITLE</h3>
+                    <p>color: ${properties[i].color}</p>
+                    <p>price: ${properties[i].price}</p>
+                    <p>RENT TO DO</p>
+                `
+            }
+            
+            cardList.appendChild(card);
+        }
+    }
+    
+
+    propertiesWindow.appendChild(cardList);
+}
+
 /**
  * Updates the board.html with player information from the server
  */
-function getPlayers(){
-    // console.log(getCurrentUrlSearchParams());
-    let url = '/get/players';
-    const xhr = new XMLHttpRequest();
-    xhr.open('GET', url);
-    xhr.send();
-    xhr.onreadystatechange = function() {
-        if (xhr.readyState === XMLHttpRequest.DONE) {
-            if( xhr.status == 200){
-                let items = JSON.parse(xhr.responseText);
-                document.getElementById('players').innerHTML = '';
-                const outputArea = document.getElementById('players');
-                let searchParams = getCurrentUrlSearchParams();
-                let currentPlayerName = searchParams.get('username');
-                // console.log(items);
-                let currentPlayer = findUserName(items, currentPlayerName)[0];
-                // console.log(currentPlayer);
+async function displayPlayers(items){
+    if(items === null){
+        items = await getPlayers();
+    }
+    document.getElementById('players').innerHTML = '';
+    const outputArea = document.getElementById('players');
+    let searchParams = getCurrentUrlSearchParams();
+    let currentPlayerName = searchParams.get('username');
+    // console.log(items);
+    let currentPlayer = findUserName(items, currentPlayerName)[0];
+    
 
-                // puts the current player at the top
-                const div = document.createElement('div');
-                    div.classList.add("player-info");
-                    div.id = currentPlayer.color + '-player';
-                    div.innerHTML = `
-                    <h2>${currentPlayer.username}</h2>
-                    <p class="balance"> <span class="dollar-sign">$</span>${currentPlayer.balance}</p>
-                    <p>Properties: ${currentPlayer.listOfCardsOwned.sort((a, b) => a - b).join(', ')}</p>`;
+    // puts the current player at the top
+    const div = document.createElement('div');
+    div.classList.add("player-info");
+    div.id = currentPlayer.color + '-player';
+    div.innerHTML = `
+    <h2>${currentPlayer.username}</h2>
+    <p class="balance"> <span class="dollar-sign">$</span>${currentPlayer.balance}</p>
+    <p>Properties: ${currentPlayer.listOfCardsOwned.sort((a, b) => a - b).join(', ')}</p>
+    <button class='show-properties' id='${currentPlayer.id}'>show</button>
+    
+    `;
+    outputArea.appendChild(div);
+    // let properties = await getPlayerProperties(currentPlayer.id);
+    // createPropertiesWindow(null);
 
-                    outputArea.appendChild(div);
 
-                // puts the remaining players
-                items.forEach(item => {
-                    if(item.username !== currentPlayerName){
-                        const div = document.createElement('div');
-                        div.classList.add("player-info");
-                        div.id = item.color + '-player';
-                        div.innerHTML = `
-                        <h2>${item.username}</h2>
-                        <p class="balance"> <span class="dollar-sign">$</span>${item.balance}</p>
-                        <p>Properties: ${item.listOfCardsOwned.sort((a, b) => a - b).join(', ')}</p>
-                        `;
-                       
-                        outputArea.appendChild(div);
-                    }
-                   
-                });
-
-            }
+    // puts the remaining players
+    items.forEach(item => {
+        if(item.username !== currentPlayerName){
+            const div = document.createElement('div');
+            div.classList.add("player-info");
+            div.id = item.color + '-player';
+            div.innerHTML = `
+            <h2>${item.username}</h2>
+            <p class="balance"> <span class="dollar-sign">$</span>${item.balance}</p>
+            <p>Properties: ${item.listOfCardsOwned.sort((a, b) => a - b).join(', ')}</p>
+            <button class='show-properties' id='${item.id}'>show</button>
+            `;
+            
+            outputArea.appendChild(div);
         }
+        
+    });
+
+
+    // displays property information
+    const showButtons = document.querySelectorAll('.show-properties');
+    const propertyData = document.querySelector('#property-data-popup');
+    
+    let isWindowVisible = false; // Keep track of popup visibility state
+
+    async function togglePropertyWindow(id) {
+        console.log('id: '+id);
+        let properties = await getPlayerProperties(id);
+        // sets up the popup window for player properties
+        createPropertiesWindow(properties);
+        isWindowVisible = !isWindowVisible; // Toggle the visibility state
+        propertyData.classList.toggle('visible', isWindowVisible); // Toggle the 'visible' class based on state
+
+        const closePropertyData = document.querySelector('#close-property-window');
+        closePropertyData.addEventListener('click', closePropertyWindow);
     }
 
-}
 
-setInterval(getPlayers, 1000);
+    function closePropertyWindow(){
+        isWindowVisible = !isWindowVisible; // Toggle the visibility state
+        propertyData.classList.toggle('visible', isWindowVisible); // Toggle the 'visible' class based on state
+    }
+
+    showButtons.forEach(button => {
+        button.addEventListener('click', event => {
+            const id = event.target.id;
+            togglePropertyWindow(id);
+        });
+    })
+    
+    
+}
+displayPlayers(null);
+// setInterval(displayPlayers, 1000);
+
+
+
+
 
 
 function getCurrentUrlSearchParams(){
