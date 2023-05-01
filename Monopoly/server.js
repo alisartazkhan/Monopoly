@@ -72,9 +72,9 @@ var UserSchema = new Schema({
 var User = mongoose.model("UserData", UserSchema);
 
 // delete all documents from the 'User' collection
-User.deleteMany({})
-.then(() => console.log('Deleted all user data'))
-.catch((err) => console.log('Error deleting users:', err));
+// User.deleteMany({})
+// .then(() => console.log('Deleted all user data'))
+// .catch((err) => console.log('Error deleting users:', err));
 
 Turn.deleteMany({})
 .then(() => {
@@ -112,7 +112,7 @@ wss.on('connection', (ws) => {
   console.log('Client connected');
   clients.add(ws);
   // Send a welcome message to the newly connected client
-  ws.send('Welcome to the chat!');
+  // ws.send('Welcome to the chat!');
   
   // When the server receives a message from a client, broadcast it to all connected clients
   ws.on('message', (message) => {
@@ -262,11 +262,13 @@ app.get('/update/turn/:turnID', (req, res) => {
       turn.playerTurn = parseInt(playersTurn);
       turn.save();
       res.end("success");
-
+      let message = {
+        'type': 'update turn'
+      }
       clients.forEach((client) => {
         console.log("state: "+client.readyState);
         if (client.readyState === WebSocket.OPEN) {
-          client.send('update turn');
+          client.send(JSON.stringify(message));
         }
       });
     })
@@ -340,6 +342,18 @@ app.get('/get/properties/:playerID', (req, res) => {
   });
 });
 
+
+async function getAllPlayers(){
+  return User.find({}).exec()
+  .then((results) => {
+    console.log(results);
+    return results;
+  })
+  .catch((error) => {
+    console.log("could get players from mongodb");
+    return null;
+  });
+}
 /**
  * updates player obj and card obj with new balance, and updates listOfCardsOwned, and ownerID in Card obj
  */
@@ -364,7 +378,7 @@ app.get('/update/pac/:playerID/:newBalance/:cardID', (req, res) => {
     });
 
   User.findOne({id: playerID}).exec()
-  .then((user) => {
+  .then(async (user) => {
     if (user){
       if (!user['listOfCardsOwned'].includes(cardID)){
       user['balance'] = newBalance;  // change balance
@@ -372,11 +386,15 @@ app.get('/update/pac/:playerID/:newBalance/:cardID', (req, res) => {
       user.save();
       console.log("Saved user balance and list of cards owned")
       res.send('Updated user balance and list of cards owned');
-
+      let players = await getAllPlayers();
+      let message = {
+        'type':'update balances and owned cards',
+        'players':players
+      }
       clients.forEach((client) => {
         console.log("state: "+client.readyState);
         if (client.readyState === WebSocket.OPEN) {
-          client.send('update balances and owned cards');
+          client.send(JSON.stringify(message));
         }
       });
 
@@ -406,14 +424,18 @@ app.get('/update/balance/:to/:from/:rent', (req, res) => {
     user['balance'] = user.balance + rent;
     user.save();
     User.findOne({id: fromID}).exec()
-    .then((user2)=> {
+    .then(async (user2)=> {
       user2['balance'] = user2.balance - rent;
       user2.save();
-
+      let players =  await getAllPlayers();
+      let message = {
+        'type':'update balance rent paid',
+        'players':players
+      }
       clients.forEach((client) => {
         console.log("state: "+client.readyState);
         if (client.readyState === WebSocket.OPEN) {
-          client.send('update balance rent paid');
+          client.send(JSON.stringify(message));
         }
       });
 
@@ -448,13 +470,20 @@ app.get('/get/user_color/:username', (req, res) => {
 app.get('/update/balance/go/:userID', (req, res) => {
   let u = req.params.userID;
   User.findOne({id: u}).exec()
-  .then((user) => {
+  .then(async (user) => {
     user['balance'] = user['balance'] + 200
     user.save()
+
+    let players = await getAllPlayers();
+      let message = {
+        'type':'update balance go',
+        'players':players
+      }
+
     clients.forEach((client) => {
       console.log("state: "+client.readyState);
       if (client.readyState === WebSocket.OPEN) {
-        client.send('update balance go');
+        client.send(JSON.stringify(message));
       }
     });
   })
@@ -511,16 +540,20 @@ app.get('/update/location/:userID/:location', (req, res) => {
   const userID = parseInt(req.params.userID);
   const location = parseInt(req.params.location);
   User.findOne({id: userID}).exec()
-    .then((user) => {
+    .then(async (user) => {
       if (user) {
         user.position = location;
         user.save();
         res.send("Successfully updated player location.");
-
+        let players = await getAllPlayers();
+        let message = {
+        'type':'update location after dice roll',
+        'players':players
+      }
         clients.forEach((client) => {
-          console.log("state: "+client.readyState);
+          console.log("sending update location");
           if (client.readyState === WebSocket.OPEN) {
-            client.send('update location after dice roll');
+            client.send(JSON.stringify(message));
           }
         });
 

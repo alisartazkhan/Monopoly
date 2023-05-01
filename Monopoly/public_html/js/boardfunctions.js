@@ -9,8 +9,8 @@ async function setMetaData(){
     const playerCount = getPlayerCount(playerList);
     oldLocs = Array(playerCount).fill(1);
     console.log(oldLocs)
-    displayNewLocation();
-    displayPlayers();
+    displayNewLocation(null);
+    displayPlayers(null);
     updatePlayersTurnDisplay();
 
 }
@@ -21,12 +21,13 @@ socket.addEventListener('open', function (event) {
   });
   
   socket.addEventListener('message', function (event) {
-    const message = event.data;
+    const message = JSON.parse(event.data);
     console.log('Received message from server:', message);
-    switch(message){
+    switch(message.type){
+        
         case 'update balances and owned cards':
             console.log('time to update balances and owned cards');
-            displayPlayers();
+            displayPlayers(message.players);
             break;
         case 'update turn':
             console.log('time to update turn');
@@ -34,15 +35,15 @@ socket.addEventListener('open', function (event) {
             break;
         case 'update balance go':
             console.log('time to update balance go');
-            displayPlayers();
+            displayPlayers(message.players);
             break;
         case 'update balance rent paid':
             console.log('time to balance rent');
-            displayPlayers();
+            displayPlayers(message.players);
             break;
         case 'update location after dice roll':
             console.log('time to update location after dice roll');
-            displayNewLocation();
+            displayNewLocation(message.players);
             break;
         
     }
@@ -473,9 +474,9 @@ function getUsername() {
 }
 
 
-async function displayNewLocation(){
+async function displayNewLocation(players){
     //console.log("should display everyones location")
-    var [newLocs, colors] = await generateNewLocs();
+    var [newLocs, colors] = await generateNewLocs(players);
     //console.log(newLocs)
     //console.log(oldLocs)
     for (let i in newLocs){
@@ -506,8 +507,11 @@ async function displayNewLocation(){
 
 }
 
-async function generateNewLocs(){
-    var list = await getPlayerList();
+async function generateNewLocs(list){
+    if(list === null){
+        list = await getPlayerList();
+    }
+    // var list = await getPlayerList();
     var retList = []
     var colorList = []
     for (let i in list){
@@ -751,8 +755,13 @@ function createPropertiesWindow(properties){
 /**
  * Updates the board.html with player information from the server
  */
-async function displayPlayers(){
-    var items = await getPlayers();
+async function displayPlayers(items){
+    console.log(items);
+    if(items === null){
+        items = await getPlayers();
+    }
+    console.log(items);
+    // var items = await getPlayers();
     document.getElementById('players').innerHTML = '';
     const outputArea = document.getElementById('players');
     let searchParams = getCurrentUrlSearchParams();
