@@ -10,9 +10,53 @@ async function setMetaData(){
     oldLocs = Array(playerCount).fill(1);
     console.log(oldLocs)
     displayNewLocation();
+    displayPlayers();
+    updatePlayersTurnDisplay();
 
 }
+//////////////////////////////////////////////
+const socket = new WebSocket('ws://localhost:3080');
+socket.addEventListener('open', function (event) {
+    console.log('WebSocket connection established');
+  });
+  
+  socket.addEventListener('message', function (event) {
+    const message = event.data;
+    console.log('Received message from server:', message);
+    switch(message){
+        case 'update balances and owned cards':
+            console.log('time to update balances and owned cards');
+            displayPlayers();
+            break;
+        case 'update turn':
+            console.log('time to update turn');
+            updatePlayersTurnDisplay();
+            break;
+        case 'update balance go':
+            console.log('time to update balance go');
+            displayPlayers();
+            break;
+        case 'update balance rent paid':
+            console.log('time to balance rent');
+            displayPlayers();
+            break;
+        case 'update location after dice roll':
+            console.log('time to update location after dice roll');
+            displayNewLocation();
+            break;
+        
+    }
+  });
+  
+  socket.addEventListener('close', function (event) {
+    console.log('WebSocket connection closed');
+  });
 
+//   socket.onmessage = (event) => {
+//     console.log(event.data);
+//   };
+
+/////////////////////////////////////////////
 
 
 
@@ -462,11 +506,8 @@ async function displayNewLocation(){
 
 }
 
-setInterval(displayNewLocation,1000)
-
 async function generateNewLocs(){
     var list = await getPlayerList();
-    await displayPlayers(list);
     var retList = []
     var colorList = []
     for (let i in list){
@@ -516,9 +557,10 @@ function fetchUsernameFromServer(userId) {
       console.log("ERROR: can't get username using userID from server");
     }
   }
-  
 
-setInterval(updatePlayersTurnDisplay, 1000);
+
+
+// setInterval(updatePlayersTurnDisplay, 1000);
 
 function getPlayerCount(list) {
     return list ? list.length : 0; // Check if list is defined before accessing its length property
@@ -709,10 +751,8 @@ function createPropertiesWindow(properties){
 /**
  * Updates the board.html with player information from the server
  */
-async function displayPlayers(items){
-    if(items === null){
-        items = await getPlayers();
-    }
+async function displayPlayers(){
+    var items = await getPlayers();
     document.getElementById('players').innerHTML = '';
     const outputArea = document.getElementById('players');
     let searchParams = getCurrentUrlSearchParams();
@@ -789,8 +829,6 @@ async function displayPlayers(items){
     
     
 }
-displayPlayers(null);
-// setInterval(displayPlayers, 1000);
 
 
 

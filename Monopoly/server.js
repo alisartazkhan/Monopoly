@@ -5,6 +5,7 @@ const express = require('express');
 const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser');
 const crypto = require('crypto');
+const WebSocket = require('ws'); // used to send messages to clients
 
 const hostname = 'localhost';
 const port = 3000;
@@ -87,7 +88,7 @@ Turn.deleteMany({})
 
 
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log('Server has started.');
 })
 
@@ -95,6 +96,63 @@ app.listen(port, () => {
 app.get('/favicon.ico', (req, res) => {
   res.status(204).end();
 });
+
+////////////////////////////////////////
+const wss = new WebSocket.Server({ port: 3080 });
+// Broadcast a message to all clients
+// wss.clients.forEach((client) => {
+//   if (client.readyState === WebSocket.OPEN) {
+//     console.log('sending a message to clients')
+//     client.send('Hello, clients!');
+//   }
+// });
+const clients = new Set();
+
+wss.on('connection', (ws) => {
+  console.log('Client connected');
+  clients.add(ws);
+  // Send a welcome message to the newly connected client
+  ws.send('Welcome to the chat!');
+  
+  // When the server receives a message from a client, broadcast it to all connected clients
+  ws.on('message', (message) => {
+    console.log(`Received message: ${message}`);
+    broadcastMessage(message);
+  });
+
+  // Removes the client from the set of connected clients when they disconnect
+  ws.on('close', () => {
+    console.log('Client disconnected');
+    clients.delete(ws);
+  });
+});
+
+
+// let random = true;
+
+
+// setInterval(()=>{
+//   if(random){
+//     clients.forEach((client) => {
+//       console.log("state: "+client.readyState);
+//       if (client.readyState === WebSocket.OPEN) {
+//         client.send('update player balance');
+//       }
+//     });
+//     random = ! random;
+//   }else{
+//     clients.forEach((client) => {
+//       console.log("state: "+client.readyState);
+//       if (client.readyState === WebSocket.OPEN) {
+//         client.send('update turn');
+//       }
+//     });
+//     random = ! random;
+//   }
+  
+// }, 2000);
+////////////////////////////
+
 
 
 
@@ -204,6 +262,13 @@ app.get('/update/turn/:turnID', (req, res) => {
       turn.playerTurn = parseInt(playersTurn);
       turn.save();
       res.end("success");
+
+      clients.forEach((client) => {
+        console.log("state: "+client.readyState);
+        if (client.readyState === WebSocket.OPEN) {
+          client.send('update turn');
+        }
+      });
     })
     .catch((error) => {
       console.log("ERROR: Updating turn");
@@ -307,6 +372,15 @@ app.get('/update/pac/:playerID/:newBalance/:cardID', (req, res) => {
       user.save();
       console.log("Saved user balance and list of cards owned")
       res.send('Updated user balance and list of cards owned');
+
+      clients.forEach((client) => {
+        console.log("state: "+client.readyState);
+        if (client.readyState === WebSocket.OPEN) {
+          client.send('update balances and owned cards');
+        }
+      });
+
+
       }
     } else {
       console.log("Couldnt update user balance and list of cards owned")
@@ -335,6 +409,15 @@ app.get('/update/balance/:to/:from/:rent', (req, res) => {
     .then((user2)=> {
       user2['balance'] = user2.balance - rent;
       user2.save();
+
+      clients.forEach((client) => {
+        console.log("state: "+client.readyState);
+        if (client.readyState === WebSocket.OPEN) {
+          client.send('update balance rent paid');
+        }
+      });
+
+
     })
     .catch((error) => {console.log('cant pay rent to owner in server')})
   })
@@ -368,6 +451,12 @@ app.get('/update/balance/go/:userID', (req, res) => {
   .then((user) => {
     user['balance'] = user['balance'] + 200
     user.save()
+    clients.forEach((client) => {
+      console.log("state: "+client.readyState);
+      if (client.readyState === WebSocket.OPEN) {
+        client.send('update balance go');
+      }
+    });
   })
   .catch((error) => {
     res.end("ERROR: adding money from passing go")
@@ -411,10 +500,9 @@ app.post('/update/turn', (req, res) => {
   var pTurn = req.body;
   t.playerTurn = pTurn.turn;
   t.save();
-  
-
-
   res.end('Updated Player Turn')
+  
+// inform all other clients about turn update
   
 });
 
@@ -428,6 +516,14 @@ app.get('/update/location/:userID/:location', (req, res) => {
         user.position = location;
         user.save();
         res.send("Successfully updated player location.");
+
+        clients.forEach((client) => {
+          console.log("state: "+client.readyState);
+          if (client.readyState === WebSocket.OPEN) {
+            client.send('update location after dice roll');
+          }
+        });
+
       } else {
         res.send("Couldnt update player location");
       }
