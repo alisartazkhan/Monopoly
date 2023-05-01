@@ -97,6 +97,8 @@ app.get('/favicon.ico', (req, res) => {
   res.status(204).end();
 });
 
+
+
 ////////////////////////////////////////
 const wss = new WebSocket.Server({ port: 3080 });
 // Broadcast a message to all clients
@@ -128,43 +130,16 @@ wss.on('connection', (ws) => {
 });
 
 
-// let random = true;
-
-
-// setInterval(()=>{
-//   if(random){
-//     clients.forEach((client) => {
-//       console.log("state: "+client.readyState);
-//       if (client.readyState === WebSocket.OPEN) {
-//         client.send('update player balance');
-//       }
-//     });
-//     random = ! random;
-//   }else{
-//     clients.forEach((client) => {
-//       console.log("state: "+client.readyState);
-//       if (client.readyState === WebSocket.OPEN) {
-//         client.send('update turn');
-//       }
-//     });
-//     random = ! random;
-//   }
-  
-// }, 2000);
-////////////////////////////
-
-
-
 
 
 app.get('/get/cards/', (req, res) => {
-  Card.find({}).exec()
-  .then((cards) => {
-    res.end(JSON.stringify(cards, undefined, 2));
-  })
-  .catch((error) => {
-    res.end("ERROR: get cards")
-  });
+  // Card.find({}).exec()
+  // .then((cards) => {
+  //   res.end(JSON.stringify(cards, undefined, 2));
+  // })
+  // .catch((error) => {
+    res.end(JSON.stringify(cardList))
+  // });
 });
 
 
@@ -290,56 +265,57 @@ app.get('/update/turn/:turnID', (req, res) => {
 /**
  * get card object using cardID
  */
-app.get('/get/property/:cardID', (req, res) => {
-  console.log("enter get prop");
+app.get('/get/property/:cardID', async (req, res) => {
+  // console.log("enter get prop");
   const cardID = parseInt(req.params.cardID);
-  Card.findOne({id: cardID}).exec()
-    .then((card) => {
-      if (card) {
-        res.end(JSON.stringify(card));
-      } else {
-        res.send("Couldnt find card");
-      }
-    })
-    .catch((error) => { 
-      res.send("Couldnt find card");
-    });
+  res.end(JSON.stringify(cardList[cardID]))
+  // Card.findOne({id: cardID}).exec()
+  //   .then((card) => {
+  //     if (card) {
+  //       res.end(JSON.stringify(card));
+  //     } else {
+  //       res.send("Couldnt find card");
+  //     }
+  //   })
+  //   .catch((error) => { 
+  //     res.send("Couldnt find card");
+  //   });
 });
 
 
 /**
  * get card objects that belong to a given player
  */
-app.get('/get/properties/:playerID', (req, res) => {
+app.get('/get/properties/:playerID', async (req, res) => {
   console.log("sending player properties");
   const playerID = parseInt(req.params.playerID);
   let properties = [];
-  let p1 = User.findOne({id:playerID}).exec();
-  let total = 0;
-  p1.then((result) => {
-    let propertyIds = result.listOfCardsOwned;
-    console.log(propertyIds);
-    for(let i=0; i< propertyIds.length; i++){
-      let p  = Card.findOne({id:propertyIds[i]}).exec();
-      p.then((result) => {
-        properties.push(result);
-        total += 1; // counts the # of properties of a player
-        if( total === propertyIds.length){
-          res.end(  JSON.stringify(properties, undefined, 2) );
-        }
-      });
+  let propList = playerList[playerID].listOfCardsOwned;
+  for (i in propList){
+    let propID = parseInt(propList[i]);
+    properties.push(cardList[propID]);
+  }
+  res.end(JSON.stringify(properties))
+  // let p1 = User.findOne({id:playerID}).exec();
+  // let total = 0;
+  // p1.then((result) => {
+  //   let propertyIds = result.listOfCardsOwned;
+  //   console.log(propertyIds);
+  //   for(let i=0; i< propertyIds.length; i++){
+  //     let p  = Card.findOne({id:propertyIds[i]}).exec();
+  //     p.then((result) => {
+  //       properties.push(result);
+  //       total += 1; // counts the # of properties of a player
+  //       if( total === propertyIds.length){
+  //         res.end(  JSON.stringify(properties, undefined, 2) );
+  //       }
+  //     });
 
-      p.catch((error) => {
-        console.log(error);
-          res.end('FAILED TO RETURN PLAYER PROPERTIES');
-      });
-    }
-  });
-
-  p1.catch((error) => {
-    console.log(error);
-    res.end('FAILED TO RETURN PLAYER PROPERTIES');
-  });
+  //     p.catch((error) => {
+  //       console.log(error);
+  //         res.end('FAILED TO RETURN PLAYER PROPERTIES');
+  //     });
+  //   }
 });
 
 
@@ -357,95 +333,137 @@ async function getAllPlayers(){
 /**
  * updates player obj and card obj with new balance, and updates listOfCardsOwned, and ownerID in Card obj
  */
-app.get('/update/pac/:playerID/:newBalance/:cardID', (req, res) => {
+app.get('/update/pac/:playerID/:newBalance/:cardID', async (req, res) => {
   console.log("enter update player and card");
   const playerID = parseInt(req.params.playerID);
   const newBalance = parseInt(req.params.newBalance);
   const cardID = parseInt(req.params.cardID);
 
-  Card.findOne({id: cardID}).exec()
-    .then((card) => {
-      if (card) {
-        card['ownerID'] = playerID;
-        card.save();
-        console.log('Updated ownerID in Card')
-      } else {
-        console.log("Couldnt set ownerID in card")
-      }
-    })
-    .catch(() => { 
-      console.log("Couldnt set ownerID in card")
-    });
+  var card = cardList[cardID];
+  card['ownerID'] = playerID;
 
-  User.findOne({id: playerID}).exec()
-  .then(async (user) => {
-    if (user){
-      if (!user['listOfCardsOwned'].includes(cardID)){
-      user['balance'] = newBalance;  // change balance
-      user['listOfCardsOwned'].push(cardID);  // add cardID to list of cards owned
-      user.save();
-      console.log("Saved user balance and list of cards owned")
-      res.send('Updated user balance and list of cards owned');
-      let players = await getAllPlayers();
-      let message = {
-        'type':'update balances and owned cards',
-        'players':players
-      }
-      clients.forEach((client) => {
-        console.log("state: "+client.readyState);
-        if (client.readyState === WebSocket.OPEN) {
-          client.send(JSON.stringify(message));
-        }
-      });
+  var user = playerList[playerID];
+  if (!(user['listOfCardsOwned'].includes(cardId))){
+    user['balance'] = newBalance;  // change balance
+    user['listOfCardsOwned'].push(cardID);  // add cardID to list of cards owned
+  }
 
-
-      }
-    } else {
-      console.log("Couldnt update user balance and list of cards owned")
-      res.send("Couldnt update User ");
+  playerList.then((val) => {
+    let message = {
+      'type':'update balances and owned cards',
+      'players':val
     }
+    clients.forEach((client) => {
+      console.log("state: "+client.readyState);
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify(message));
+      }
   })
-  .catch((err) => {
-    console.log("Couldnt update user balance and list of cards owned")
-    res.send("Couldnt update User");
-  })
+  
+  });
+
+
+  // Card.findOne({id: cardID}).exec()
+  //   .then((card) => {
+  //     if (card) {
+  //       card['ownerID'] = playerID;
+  //       card.save();
+  //       console.log('Updated ownerID in Card')
+  //     } else {
+  //       console.log("Couldnt set ownerID in card")
+  //     }
+  //   })
+  //   .catch(() => { 
+  //     console.log("Couldnt set ownerID in card")
+  //   });
+
+  // User.findOne({id: playerID}).exec()
+  // .then(async (user) => {
+  //   if (user){
+  //     if (!user['listOfCardsOwned'].includes(cardID)){
+  //     user['balance'] = newBalance;  // change balance
+  //     user['listOfCardsOwned'].push(cardID);  // add cardID to list of cards owned
+  //     user.save();
+  //     console.log("Saved user balance and list of cards owned")
+  //     res.send('Updated user balance and list of cards owned');
+  //     let players = await getAllPlayers();
+  //     let message = {
+  //       'type':'update balances and owned cards',
+  //       'players':players
+  //     }
+  //     clients.forEach((client) => {
+  //       console.log("state: "+client.readyState);
+  //       if (client.readyState === WebSocket.OPEN) {
+  //         client.send(JSON.stringify(message));
+  //       }
+  //     });
+
+
+  //     }
+  //   } else {
+  //     console.log("Couldnt update user balance and list of cards owned")
+  //     res.send("Couldnt update User ");
+  //   }
+  // })
+  // .catch((err) => {
+  //   console.log("Couldnt update user balance and list of cards owned")
+  //   res.send("Couldnt update User");
+  // })
 });
 
 /**
  * 
  */
-app.get('/update/balance/:to/:from/:rent', (req, res) => {
+app.get('/update/balance/:to/:from/:rent', async (req, res) => {
   const toID = parseInt(req.params.to);
   const fromID = parseInt(req.params.from);
   const rent = parseInt(req.params.rent)
 
-  User.findOne({id: toID}).exec()
-  .then((user) => {
-    user['balance'] = user.balance + rent;
-    user.save();
-    User.findOne({id: fromID}).exec()
-    .then(async (user2)=> {
-      user2['balance'] = user2.balance - rent;
-      user2.save();
-      let players =  await getAllPlayers();
-      let message = {
-        'type':'update balance rent paid',
-        'players':players
-      }
-      clients.forEach((client) => {
-        console.log("state: "+client.readyState);
-        if (client.readyState === WebSocket.OPEN) {
-          client.send(JSON.stringify(message));
-        }
-      });
+  var user = playerList[toID];
+  user['balance'] = user.balance + rent;
+  var user2 = playerList[fromID];
+  user2['balance'] = user2.balance - rent;
+
+  playerList.then((val) => {
+  let message = {
+    'type':'update balance rent paid',
+    'players':val
+  }
+  clients.forEach((client) => {
+    console.log("state: "+client.readyState);
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(JSON.stringify(message));
+    }
+  
+  })}
+  );
+  // User.findOne({id: toID}).exec()
+  // .then((user) => {
+  //   user['balance'] = user.balance + rent;
+  //   user.save();
+  //   User.findOne({id: fromID}).exec()
+  //   .then(async (user2)=> {
+  //     user2['balance'] = user2.balance - rent;
+  //     user2.save();
+  //     let players =  await getAllPlayers();
+  //     let message = {
+  //       'type':'update balance rent paid',
+  //       'players':players
+  //     }
+  //     clients.forEach((client) => {
+  //       console.log("state: "+client.readyState);
+  //       if (client.readyState === WebSocket.OPEN) {
+  //         client.send(JSON.stringify(message));
+  //       }
+  //     });
 
 
-    })
-    .catch((error) => {console.log('cant pay rent to owner in server')})
-  })
-  .catch((error) => {
-    res.end("ERROR: get card using index")
-  });
+  //   })
+  //   .catch((error) => {console.log('cant pay rent to owner in server')})
+  // })
+  // .catch((error) => {
+  //   res.end("ERROR: get card using index")
+  // });
 });
 
 /**
@@ -467,44 +485,53 @@ app.get('/get/user_color/:username', (req, res) => {
 /**
  * Sends usercolor back to the client
  */
-app.get('/update/balance/go/:userID', (req, res) => {
+app.get('/update/balance/go/:userID', async (req, res) => {
   let u = req.params.userID;
-  User.findOne({id: u}).exec()
-  .then(async (user) => {
-    user['balance'] = user['balance'] + 200
-    user.save()
+  var user = playerList[u];
+  user['balance'] = user['balance'] + 200;
 
-    let players = await getAllPlayers();
-      let message = {
-        'type':'update balance go',
-        'players':players
-      }
-
+  playerList.then((val) => {
+    let message = {
+      'type':'update balance go',
+      'players':val
+    }
     clients.forEach((client) => {
       console.log("state: "+client.readyState);
       if (client.readyState === WebSocket.OPEN) {
         client.send(JSON.stringify(message));
       }
-    });
-  })
-  .catch((error) => {
-    res.end("ERROR: adding money from passing go")
-  });
+  })});
+  // User.findOne({id: u}).exec()
+  // .then(async (user) => {
+  //   user['balance'] = user['balance'] + 200
+  //   user.save()
+
+  //   let players = await getAllPlayers();
+  //     let message = {
+  //       'type':'update balance go',
+  //       'players':players
+  //     }
+
+  //   clients.forEach((client) => {
+  //     console.log("state: "+client.readyState);
+  //     if (client.readyState === WebSocket.OPEN) {
+  //       client.send(JSON.stringify(message));
+  //     }
+  //   });
+  // })
+  // .catch((error) => {
+  //   res.end("ERROR: adding money from passing go")
+  // });
 });
 
 
 //  Sends a list of players to the clients
-app.get('/get/players', (req, res) => {
-  // console.log('Sending all players');
-  let p1 = User.find({}).exec()
-  p1.then( (results) => { 
-    res.end( JSON.stringify(results, undefined, 2) );
+app.get('/get/players', async (req, res) => {
+    playerList.then((val)=>{
+      res.end(JSON.stringify(val));
+
+    })
   });
-  p1.catch( (error) => {
-    // console.log(error);
-    res.end('FAIL');
-  });
-});
 
 app.get('/get/turn/', (req, res) => {
   Turn.findOne().exec()
@@ -535,98 +562,32 @@ app.post('/update/turn', (req, res) => {
   
 });
 
-app.get('/update/location/:userID/:location', (req, res) => {
+app.get('/update/location/:userID/:location', async (req, res) => {
   console.log("enter update location");
   const userID = parseInt(req.params.userID);
   const location = parseInt(req.params.location);
-  User.findOne({id: userID}).exec()
-    .then(async (user) => {
-      if (user) {
-        user.position = location;
-        user.save();
-        res.send("Successfully updated player location.");
-        let players = await getAllPlayers();
-        let message = {
-        'type':'update location after dice roll',
-        'players':players
-      }
-        clients.forEach((client) => {
-          console.log("sending update location");
-          if (client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify(message));
-          }
-        });
+  playerList.then((val) => {
+    var user = val[userID];
+    user.position = location;
+  })
 
-      } else {
-        res.send("Couldnt update player location");
-      }
-    })
-    .catch((error) => { 
-      res.send("Couldnt update player location");
-    });
-});
 
-//  updates player data based on local changes
+  playerList.then((val)=>{
+    let message = {
+      'type':'update location after dice roll',
+      'players':val
+    }
+      clients.forEach((client) => {
+        console.log("sending update location");
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify(message));
+        }
+      });
 
-/*
-app.post('/update/players', (req, res) => {
-  // console.log('updating players in the db');
-  // console.log(req.body[0]);
-  const playersToUpdate = req.body;
-  
-  for( let i=0; i < playersToUpdate.length; i++){
-    let p = playersToUpdate[i];
-    // console.log(p);
-    let test = User.find({}).exec();
-    test.then((res) => {
-      // console.log(res);
-    })
-    let p2 = User.findOne({id:p.id}).exec();
-    p2.then((matchingPlayer) => {
-      // console.log(matchingPlayer);
-      matchingPlayer.balance = p.balance;
-      matchingPlayer.position = p.position;
-      matchingPlayer.listOfCardsOwned = p.listOfCardsOwned;
-      matchingPlayer.save();
-
-    });
-
-  }
-  res.send('SAVED PLAYERS SUCCESSFULLY')
+  })
+ 
   
 });
-
-*/
-
-//  updates cards based on local changes
-app.post('/update/cards/', (req, res) => {
-  // console.log('updating cards in the db');
-  // console.log(req.body);
-  var cardsToUpdate = req.body;
-  for( let i in cardsToUpdate){
-    let p = cardsToUpdate[i];
-    let p2 = Card.findOne({id : p.id}).exec();
-    p2.then((matchingCard) => {
-      
-      matchingCard.price = p.prce;
-      matchingCard.isPurchased = p.isPurchased;
-      matchingCard.ownerID = p.ownerID;
-      matchingCard.hasSet = p.hasSet;
-      matchingCard.visitors = p.visitors;
-      matchingCard.numberOfHouses = p.numberOfHouses;
-      matchingCard.houseRentMultiplier = p.houseRentMultiplier;
-      matchingCard.save();
-
-    });
-  }
-  res.end('SAVED CARDS SUCCESSFULLY')
-
-});
-
-
-
-
-
 
 var user_Id = 0;   // users start from 0 index
 const user_colors = ['red', 'blue', 'green', 'yellow'];
@@ -663,6 +624,7 @@ app.post('/add/user/', (req, res) => {
         numberOfHouses: 0
       });
       let p1 = newUser.save();
+      playerList.push(newUser);
       p1.then((doc) => {
         console.log('new user saved.')
         res.end('SAVED SUCCESSFULLY');
@@ -699,6 +661,29 @@ app.get('/account/login/:USERNAME/:PASSWORD', (req, res) => {
           foundUser['position'] = 0;
           foundUser['listOfCardsOwned'] = [];
           foundUser.save();
+          var player = playerList[foundUser.id];
+          playerList.then((value) => {
+            console.log("INside .then() " + value[foundUser.id])
+            var player = value[foundUser.id]
+            player.status = "NR";
+            player.balance = 1500;
+            player.position = 0;
+            player.listOfCardsOwned = []
+            console.log(playerList)
+
+          })
+          // console.log("player found in db"+player)
+          // console.log(foundUser.id)
+          // console.log("PList: " + playerList);
+
+          // player.status = "NR";
+          // player.balance = 1500;
+          // player.position = 0;
+          // player.listOfCardsOwned = [];
+
+          
+
+
         }
       });
       if (authenticated) {
@@ -713,7 +698,7 @@ app.get('/account/login/:USERNAME/:PASSWORD', (req, res) => {
   }))
 });
 
-function createAllCards(){
+function createAllCardsNo(){
   console.log('Recreating all the cards');
   let cardData = [
     [0,0,0],  // cardID, price, base rent
@@ -819,3 +804,76 @@ function generateSalt() {
   }
   return result;
 }
+
+
+var cardList = []
+var playerList = getAllPlayers()
+var turn = 0
+
+
+
+
+function createAllCards(){
+  console.log('Recreating all the cards');
+  let cardData = [
+    [0,0,0,[],null],  // cardID, price, base rent, cards in set,
+    [1,60,2,[1,2],"Medi"],
+    [2,60,4,[1,2],"Baltic"],
+    [3,0,0,[],null],
+    [4,200,50,[4,12,20,28],"Read RR"],
+    [5,100,6,[5,6,7],"Oriental"],
+    [6,100,6,[5,6,7],"Vermont"],
+    [7,120,8,[5,6,7],"Conn"],
+    [8,0,0,[],null],
+    [9,140,10,[9,10,11],"Charles"],
+    [10,140,10,[9,10,11],"States"],
+    [11,160,12,[9,10,11],"Virginia"],
+    [12,200,50,[4,12,20,28],"Penn RR"],
+    [13,180,14,[13,14,15],"James"],
+    [14,180,14,[13,14,15],"Tenn"],
+    [15,200,16,[13,14,15],"New York"],
+    [16,0,0,[],null],
+    [17,220,18,[17,18,19],"Kent"],
+    [18,220,18,[17,18,19],"Indiana"],
+    [19,240,20,[17,18,19],"Ill"],
+    [20,200,50,[4,12,20,28],"B&O RR"],
+    [21,260,22,[21,22,23],"Atl"],
+    [22,260,22,[21,22,23],"Vent"],
+    [23,280,24,[21,22,23],"Marvin"],
+    [24,0,0,[],null],
+    [25,300,26,[25,26,27],"Pac"],
+    [26,300,26,[25,26,27],"North"],
+    [27,320,28,[25,26,27],"Penns"],
+    [28,200,50,[4,12,20,28],"Short RR"],
+    [29,350,35,[29,31],"Park P"],
+    [30,0,0,[],null],
+    [31,400,50,[29,31],"Board"]
+  ]
+  for(let i=0; i<cardData.length; i++ ){
+    let c = new Card({
+      id: cardData[i][0],
+      color: null,
+      name: cardData[i][4],
+      price: cardData[i][1],
+      isPurchased: null,
+      ownerID: null,    // id val of User Object
+      hasSet: false,    // if owner purchased the all the cards in the set
+      rent: cardData[i][2],
+      visitors: [], // list of User id values currently on the card
+      otherCardsInSet: cardData[i][3],  // id vals of other Cards in set
+      numberOfHouses: null, 
+      houseRentMultiplier: null
+    });
+
+    cardList.push(c);
+    c.save();
+  }
+
+}
+
+createAllCards();
+console.log("start printing cards-------------------------------")
+console.log(cardList)
+console.log("stop printing cards-------------------------------")
+
+console.log(playerList)
