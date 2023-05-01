@@ -730,10 +730,9 @@ function createPropertiesWindow(properties){
             card.classList.add('card');
             if(properties[i].color !== null){
                 card.innerHTML = `
-                    <h3 style="background:${properties[i].color};">TITLE</h3>
-                    <p>color: ${properties[i].color}</p>
+                    <h3 style="background:${properties[i].color};">${properties[i].name}</h3>
                     <p>price: ${properties[i].price}</p>
-                    <p>RENT TO DO</p>
+                    <p>rent: ${properties[i].rent}</p>
                 `
             }else{
                 card.innerHTML = `
