@@ -1,6 +1,6 @@
 body{
     margin:0%;
-    background-color: rgba(43, 186, 43, 0.524);
+    background-color: rgba(39, 190, 39, 0.524);
 }
 .board{
     background-color: oran;
@@ -69,11 +69,31 @@ table{
     width:100%;
     
 }
+
+#restart {
+  position: fixed;
+  top:20%;
+  left:20%;
+  width:20%;
+  border: 5px solid red;
+  border-radius: 10px;
+  text-align: center ;
+  font-family: 'Times New Roman', Times, serif;  /* display: none; */
+  display: none;
+
+}
+
+#restart a {
+  color: rgba(25, 53, 25, 0.524);
+  font-weight: bold;
+  text-decoration: none;
+}
+
 p.balance{
-    width:20%;
-    float:right;
-    font-size: 23px;
-    font-weight: bold;
+  width:20%;
+  float:right;
+  font-size: 23px;
+  font-weight: bold;
 
 }
 

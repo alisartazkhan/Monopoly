@@ -3,6 +3,8 @@
 var IP_ADDRESS = 'http://localhost:3000/';
 
 var oldLocs = []
+let gameEnded = false;
+let winner = null;
 
 async function setMetaData(){
     const playerList = await getPlayerList();
@@ -28,6 +30,7 @@ socket.addEventListener('open', function (event) {
             console.log('time to update balances and owned cards');
             displayPlayers(message.players);
             updateLog(message.log);
+            isGameOver(message.players);
             break;
         case 'update turn':
             console.log('time to update turn');
@@ -42,6 +45,8 @@ socket.addEventListener('open', function (event) {
             console.log('time to balance rent');
             displayPlayers(message.players);
             updateLog(message.log);
+            isGameOver(message.players);
+
             break;
         case 'update location after dice roll':
             console.log('time to update location after dice roll');
@@ -61,6 +66,29 @@ socket.addEventListener('open', function (event) {
 //   };
 
 /////////////////////////////////////////////
+
+async function isGameOver(players){
+    let gameOver = true;
+    let count = 0;
+    for (i in players){
+        let player = players[i];
+        if (player.balance > 0) {
+            winner = player.username;
+            count++;
+        }
+    }
+    console.log(count);
+
+    // there is only one player with a balance over zero
+    if (count == 1){
+        gameEnded = true;
+        updateLog(`${winner} is the winner!`);
+        document.getElementsByTagName('table')[0].style.display = 'none';
+        document.getElementById('restart').style.display = 'inline-block';
+    }
+
+
+}
 
 function updateLog(newLog){
     // Create a new p element with the newLog text
@@ -258,7 +286,7 @@ async function rollDice(){
         for (i in playerList){
             let potentialPlayer = playerList[i];
             
-            if (potentialPlayer.id == myID){
+            if (potentialPlayer.id == myID && potentialPlayer.balance > 0){
                 //console.log(potentialPlayer)
                 var d1 = Math.floor(Math.random() * 6)+1;
                 var d2 = Math.floor(Math.random() * 6)+1;
@@ -289,7 +317,7 @@ async function rollDice(){
         // enable roll dice button
         document.getElementById("roll_dice_btn").disabled = false;
         
-        postTurnValue(playersTurn+1, playerCount);
+        postTurnValue(playersTurn+1, playerCount, playerList);
 
     } else {
         console.log("not my turn, its " + " turn");
@@ -387,6 +415,10 @@ async function checkProperty(player, newLocation) {
   }
 
   function getRent(prop){
+    // checks if there is a monopoly
+    if (prop.hasSet){
+        return prop.rent*3;
+    }
     return prop.rent;
   }
     
@@ -416,9 +448,13 @@ async function updatePlayerLocation(myID, newLocation){
 }
 
 
-async function postTurnValue(val, playerCount){
+async function postTurnValue(val, playerCount, playerList){
     if (val >= playerCount){
         val = 0;
+    }
+    if (playerList[val].balance <= 0){
+        postTurnValue(val+1,playerCount,playerList);
+        return;
     }
     fetch(IP_ADDRESS + 'update/turn/' + val)
     .then((response) => {return response.text();})

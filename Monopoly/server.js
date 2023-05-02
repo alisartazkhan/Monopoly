@@ -631,6 +631,13 @@ app.get('/account/login/:USERNAME/:PASSWORD', (req, res) => {
           foundUser['position'] = 0;
           foundUser['listOfCardsOwned'] = [];
           foundUser.save();
+          // delete all documents from the 'User' collection
+          Card.deleteMany({})
+          .then(() => {
+            console.log('Deleted all cards');
+            createAllCards();
+          })
+          .catch((err) => console.log('Error deleting cards:', err));
         }
       });
       if (authenticated) {
