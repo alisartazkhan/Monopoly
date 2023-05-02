@@ -193,12 +193,25 @@ function authenticate(req, res, next){
     let result = doesUserHaveSession(c.login);
     // console.log(result);
     if (result) {
+      resetUserLoginSession(req, res);
       next();
       return;
     }
   }
   console.log('redirecting to login page');
   res.redirect('/index.html');
+}
+
+
+function resetUserLoginSession(req, res){
+  console.log("resetting login session");
+  let loginCookie = req.cookies.login;
+  let username = loginCookie.username;
+
+  sessions[username].start = Date.now();
+  
+  loginCookie.maxAge = SESSION_LENGTH;
+  res.cookie('login', loginCookie, { maxAge: SESSION_LENGTH });
 }
 ////////////////////// END of SESSION CONTROL/////////////////////////////////
 
@@ -357,6 +370,7 @@ app.get('/get/property/:cardID', (req, res) => {
  */
 app.get('/get/properties/:playerID', (req, res) => {
   console.log("sending player properties");
+  resetUserLoginSession(req, res);
   const playerID = parseInt(req.params.playerID);
   let properties = [];
   let p1 = User.findOne({id:playerID}).exec();
@@ -572,6 +586,7 @@ app.get('/get/players', (req, res) => {
 });
 
 app.get('/get/turn/', (req, res) => {
+  resetUserLoginSession(req, res);
   Turn.findOne().exec()
     .then((turn) => {
       if (turn) {
