@@ -36,7 +36,7 @@ table{
     flex-direction: column;
     float:right;
     width:25%;
-    background:rgba(173, 216, 230, 0.309);
+    /* background:rgba(173, 216, 230, 0.309); */
     margin:4% 5% 0 0;
     border-radius: 15px;
 
@@ -49,6 +49,7 @@ table{
     margin: 10px;
     background:rgba(13, 13, 102, 0.493);
     border-radius: 15px;
+    min-height: 90px;
     box-shadow: rgba(86, 86, 213, 0.392) 0px 10px 20px, rgba(86, 86, 213, 0.54) 0px 6px 6px;
 }
 .player-info h2{
@@ -90,10 +91,10 @@ table{
 }
 
 p.balance{
-  width:20%;
-  float:right;
-  font-size: 23px;
-  font-weight: bold;
+    width:17%;
+    float:right;
+    font-size: 23px;
+    font-weight: bold;
 
 }
 
@@ -111,14 +112,13 @@ p.balance{
 #yellow-player{ background: #D49F15;}
 #blue-player{ background:#1574D4;}
 
-.show-properties {
-  background: #e9dee9;
-    border: 1px solid white;
-    color:rgb(43, 30, 30);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    height: 25px;
-    border-radius: 5px;
+.show-properties{
+  border-radius: 9px;
+  background:rgb(90, 89, 89);
+  color:rgb(246, 243, 230);
+  height:30px;
 }
+
 
 /* styles for the pop-up window */
 #info-button{

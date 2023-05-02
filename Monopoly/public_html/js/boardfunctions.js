@@ -106,7 +106,7 @@ function updateLog(newLog){
 
 let tList = [];
 async function fetchCardsFromServer(){
-    const cards = await fetch('/get/cards/');
+    const cards = await fetch(IP_ADDRESS + 'get/cards/');
     const data = await cards.json();
     return data;
 }
@@ -195,7 +195,7 @@ function updatePlayers(){
 
     // console.log(jsonPlayersToSend);
     const data = JSON.stringify(jsonPlayersToSend);
-    let p = fetch(url, {
+    let p = fetch(IP_ADDRESS + url, {
         method: 'POST',
         body: data, // skips "index 0" in the pList
         headers: {"Content-Type": "application/json"}
@@ -423,7 +423,7 @@ async function checkProperty(player, newLocation) {
   }
     
     function updatePlayerAndCard(playerID, newBalance, propertyID){
-        fetch('update/pac/' + playerID + '/' + newBalance + '/' + propertyID)
+        fetch(IP_ADDRESS + 'update/pac/' + playerID + '/' + newBalance + '/' + propertyID)
         .then((response) => {return response.text();})
         .then((text) => {console.log(text);})
         .catch((err) => {console.log("Cant update player and card info in server")});
@@ -441,7 +441,7 @@ async function checkProperty(player, newLocation) {
       }
 
 async function updatePlayerLocation(myID, newLocation){
-    fetch('update/location/' + myID + '/' + newLocation)
+    fetch(IP_ADDRESS + 'update/location/' + myID + '/' + newLocation)
     .then((response) => {return response.text();})
     .then((text) => {console.log(text);})
     .catch((err) => {console.log("Cant update player location in server")});
@@ -475,7 +475,7 @@ function getUsername() {
 
 
   async function fetchClientIDFromServer(username){
-    const response = await fetch('/get/userID/'+username);
+    const response = await fetch(IP_ADDRESS + 'get/userID/'+username);
     const text = await response.text();
     console.log("Server output for ID: " + text);
     return text;
@@ -691,25 +691,25 @@ function createOriginalSpaces() {
 */
 
 // displays property information
-const infoButton = document.querySelector('#info-button');
-const infoPopup = document.querySelector('#info-popup');
-const closeButton = document.querySelector('.close-button');
-let isPopupVisible = false; // Keep track of popup visibility state
+// const infoButton = document.querySelector('#info-button');
+// const infoPopup = document.querySelector('#info-popup');
+// const closeButton = document.querySelector('.close-button');
+// let isPopupVisible = false; // Keep track of popup visibility state
 
-function togglePopup() {
-    isPopupVisible = !isPopupVisible; // Toggle the visibility state
-    infoPopup.classList.toggle('visible', isPopupVisible); // Toggle the 'visible' class based on state
-}
+// function togglePopup() {
+//     isPopupVisible = !isPopupVisible; // Toggle the visibility state
+//     infoPopup.classList.toggle('visible', isPopupVisible); // Toggle the 'visible' class based on state
+// }
 
-infoButton.addEventListener('click', togglePopup);
-closeButton.addEventListener('click', togglePopup);
+// infoButton.addEventListener('click', togglePopup);
+// closeButton.addEventListener('click', togglePopup);
 
 
 
 
 async function getPlayers(){
-    let url = '/get/players';
-    const properties = await fetch(url);
+    let url = 'get/players';
+    const properties = await fetch(IP_ADDRESS + url);
     const data = await properties.json();
     return data;
 }
@@ -785,7 +785,7 @@ async function displayPlayers(items){
     <h2>${currentPlayer.username}</h2>
     <p class="balance"> <span class="dollar-sign">$</span>${currentPlayer.balance}</p>
     <p></p>
-    <button class='show-properties' id='${currentPlayer.id}'>Show Properties</button>
+    <button class='show-properties' id='${currentPlayer.id}'>Properties</button>
     
     `;
     outputArea.appendChild(div);
@@ -803,7 +803,7 @@ async function displayPlayers(items){
             <h2>${item.username}</h2>
             <p class="balance"> <span class="dollar-sign">$</span>${item.balance}</p>
             <p></p>
-            <button class='show-properties' id='${item.id}'>Show Properties</button>
+            <button class='show-properties' id='${item.id}'>Properties</button>
             `;
             
             outputArea.appendChild(div);
@@ -870,5 +870,5 @@ function findUserName(players, username){
 
 
 function helpPage(){
-    window.location.href = './help.html';
+    window.location.href = '../help.html';
 }
