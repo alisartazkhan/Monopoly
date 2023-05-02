@@ -37,9 +37,6 @@ var TurnSchema = new Schema({
 const Turn = mongoose.model('Turn', TurnSchema);
 
 
-
-
-
 var CardSchema = new Schema({ 
   id: Number,  // index in board list on client side
   color: String,
@@ -126,34 +123,6 @@ wss.on('connection', (ws) => {
     clients.delete(ws);
   });
 });
-
-
-// let random = true;
-
-
-// setInterval(()=>{
-//   if(random){
-//     clients.forEach((client) => {
-//       console.log("state: "+client.readyState);
-//       if (client.readyState === WebSocket.OPEN) {
-//         client.send('update player balance');
-//       }
-//     });
-//     random = ! random;
-//   }else{
-//     clients.forEach((client) => {
-//       console.log("state: "+client.readyState);
-//       if (client.readyState === WebSocket.OPEN) {
-//         client.send('update turn');
-//       }
-//     });
-//     random = ! random;
-//   }
-  
-// }, 2000);
-////////////////////////////
-
-
 
 
 
@@ -258,9 +227,9 @@ app.get('/get/userID/:username', (req, res) => {
 app.get('/update/turn/:turnID', (req, res) => {
   let playersTurn = req.params.turnID;
   Turn.findOne({}).exec()
-    .then((turn) => {
+    .then(async (turn) => {
       turn.playerTurn = parseInt(playersTurn);
-      turn.save();
+      await turn.save();
       res.end("success");
       let message = {
         'type': 'update turn'
@@ -346,7 +315,6 @@ app.get('/get/properties/:playerID', (req, res) => {
 async function getAllPlayers(){
   return User.find({}).exec()
   .then((results) => {
-    console.log(results);
     return results;
   })
   .catch((error) => {
@@ -362,12 +330,14 @@ app.get('/update/pac/:playerID/:newBalance/:cardID', async (req, res) => {
   const playerID = parseInt(req.params.playerID);
   const newBalance = parseInt(req.params.newBalance);
   const cardID = parseInt(req.params.cardID);
-
+  var cName;
+  
   try {
     const card = await Card.findOne({id: cardID}).exec();
     if (card) {
       card['ownerID'] = playerID;
-      card.save();
+      await card.save();
+      cName = card.name;
       let isMonopoly = true;
       await Promise.all(card.otherCardsInSet.map(async (cID) => {
         const card2 = await Card.findOne({id: cID}).exec();
@@ -397,34 +367,33 @@ app.get('/update/pac/:playerID/:newBalance/:cardID', async (req, res) => {
       res.send("Couldn't update card or user");
     }
 
-  User.findOne({id: playerID}).exec()
-  .then(async (user) => {
-    if (user){
-      if (!user['listOfCardsOwned'].includes(cardID)){
-      user['balance'] = newBalance;  // change balance
-      user['listOfCardsOwned'].push(cardID);  // add cardID to list of cards owned
-      user.save();
-      console.log("Saved user balance and list of cards owned")
-      res.send('Updated user balance and list of cards owned');
-      let players = await getAllPlayers();
-      let message = {
-        'type':'update balances and owned cards',
-        'players':players
-      }
-      clients.forEach((client) => {
-        console.log("state: "+client.readyState);
-        if (client.readyState === WebSocket.OPEN) {
-          client.send(JSON.stringify(message));
+    User.findOne({id: playerID}).exec()
+    .then(async (user) => {
+      if (user){
+        if (!user['listOfCardsOwned'].includes(cardID)){
+          user['balance'] = newBalance;  // change balance
+          user['listOfCardsOwned'].push(cardID);  // add cardID to list of cards owned
+          
+          await user.save();
+          console.log("Saved user balance and list of cards owned")
+          res.send('Updated user balance and list of cards owned');
+          let players = await getAllPlayers();
+          let message = {
+            'type':'update balances and owned cards',
+            'players':players,
+            'log': `${user.username} bought ${cName}!`
+          }
+          
+          clients.forEach((client) => {
+            console.log("state: "+client.readyState);
+            if (client.readyState === WebSocket.OPEN) {
+              client.send(JSON.stringify(message));
+            }
+          });
+          
         }
-      });
-
-
       }
-    } else {
-      console.log("Couldnt update user balance and list of cards owned")
-      res.send("Couldnt update User ");
-    }
-  })
+    })
   .catch((err) => {
     console.log("Couldnt update user balance and list of cards owned")
     res.send("Couldnt update User");
@@ -440,17 +409,18 @@ app.get('/update/balance/:to/:from/:rent', (req, res) => {
   const rent = parseInt(req.params.rent)
 
   User.findOne({id: toID}).exec()
-  .then((user) => {
+  .then(async (user) => {
     user['balance'] = user.balance + rent;
-    user.save();
+    await user.save();
     User.findOne({id: fromID}).exec()
     .then(async (user2)=> {
       user2['balance'] = user2.balance - rent;
-      user2.save();
+      await user2.save();
       let players =  await getAllPlayers();
       let message = {
         'type':'update balance rent paid',
-        'players':players
+        'players':players,
+        'log': `${user2.username} paid ${user.username} $${rent} in rent.`
       }
       clients.forEach((client) => {
         console.log("state: "+client.readyState);
@@ -458,8 +428,6 @@ app.get('/update/balance/:to/:from/:rent', (req, res) => {
           client.send(JSON.stringify(message));
         }
       });
-
-
     })
     .catch((error) => {console.log('cant pay rent to owner in server')})
   })
@@ -492,12 +460,13 @@ app.get('/update/balance/go/:userID', (req, res) => {
   User.findOne({id: u}).exec()
   .then(async (user) => {
     user['balance'] = user['balance'] + 200
-    user.save()
+    await user.save()
 
     let players = await getAllPlayers();
       let message = {
         'type':'update balance go',
-        'players':players
+        'players':players,
+        'log': `${user.username} passed Go!`
       }
 
     clients.forEach((client) => {
@@ -555,7 +524,7 @@ app.post('/update/turn', (req, res) => {
   
 });
 
-app.get('/update/location/:userID/:location', (req, res) => {
+app.get('/update/location/:userID/:location', async (req, res) => {
   console.log("enter update location");
   const userID = parseInt(req.params.userID);
   const location = parseInt(req.params.location);
@@ -563,8 +532,8 @@ app.get('/update/location/:userID/:location', (req, res) => {
     .then(async (user) => {
       if (user) {
         user.position = location;
-        user.save();
-        res.send("Successfully updated player location.");
+        await user.save();
+        console.log("user after updating location " + user)
         let players = await getAllPlayers();
         let message = {
         'type':'update location after dice roll',
@@ -573,74 +542,17 @@ app.get('/update/location/:userID/:location', (req, res) => {
         clients.forEach((client) => {
           console.log("sending update location");
           if (client.readyState === WebSocket.OPEN) {
+            console.log("PlayerList :" + message.players)
             client.send(JSON.stringify(message));
           }
         });
-
-      } else {
-        res.send("Couldnt update player location");
+        res.send("Successfully updated player location.");
       }
     })
+    .then((val) => {})
     .catch((error) => { 
       res.send("Couldnt update player location");
     });
-});
-
-//  updates player data based on local changes
-
-/*
-app.post('/update/players', (req, res) => {
-  // console.log('updating players in the db');
-  // console.log(req.body[0]);
-  const playersToUpdate = req.body;
-  
-  for( let i=0; i < playersToUpdate.length; i++){
-    let p = playersToUpdate[i];
-    // console.log(p);
-    let test = User.find({}).exec();
-    test.then((res) => {
-      // console.log(res);
-    })
-    let p2 = User.findOne({id:p.id}).exec();
-    p2.then((matchingPlayer) => {
-      // console.log(matchingPlayer);
-      matchingPlayer.balance = p.balance;
-      matchingPlayer.position = p.position;
-      matchingPlayer.listOfCardsOwned = p.listOfCardsOwned;
-      matchingPlayer.save();
-
-    });
-
-  }
-  res.send('SAVED PLAYERS SUCCESSFULLY')
-  
-});
-
-*/
-
-//  updates cards based on local changes
-app.post('/update/cards/', (req, res) => {
-  // console.log('updating cards in the db');
-  // console.log(req.body);
-  var cardsToUpdate = req.body;
-  for( let i in cardsToUpdate){
-    let p = cardsToUpdate[i];
-    let p2 = Card.findOne({id : p.id}).exec();
-    p2.then((matchingCard) => {
-      
-      matchingCard.price = p.prce;
-      matchingCard.isPurchased = p.isPurchased;
-      matchingCard.ownerID = p.ownerID;
-      matchingCard.hasSet = p.hasSet;
-      matchingCard.visitors = p.visitors;
-      matchingCard.numberOfHouses = p.numberOfHouses;
-      matchingCard.houseRentMultiplier = p.houseRentMultiplier;
-      matchingCard.save();
-
-    });
-  }
-  res.end('SAVED CARDS SUCCESSFULLY')
-
 });
 
 
@@ -732,72 +644,6 @@ app.get('/account/login/:USERNAME/:PASSWORD', (req, res) => {
     }
   }))
 });
-
-// function createAllCards(){
-//   console.log('Recreating all the cards');
-//   let cardData = [
-//     [0,0,0,[],null],  // cardID, price, base rent, cards in set,
-//     [1,60,2,[1,2],"Medi", 'brown'],
-//     [2,60,4,[1,2],"Baltic",'brown'],
-//     [3,0,0,[],null],
-//     [4,200,50,[4,12,20,28],"Read RR"],
-//     [5,100,6,[5,6,7],"Oriental", "lightblue"],
-//     [6,100,6,[5,6,7],"Vermont", "lightblue"],
-//     [7,120,8,[5,6,7],"Conn", "lightblue"],
-//     [8,0,0,[],null],
-//     [9,140,10,[9,10,11],"Charles", "purple"],
-//     [10,140,10,[9,10,11],"States", "purple"],
-//     [11,160,12,[9,10,11],"Virginia", "purple"],
-//     [12,200,50,[4,12,20,28],"Penn RR"],
-//     [13,180,14,[13,14,15],"James", "orange"],
-//     [14,180,14,[13,14,15],"Tenn"], "orange",
-//     [15,200,16,[13,14,15],"New York"], "orange",
-//     [16,0,0,[],null],
-//     [17,220,18,[17,18,19],"Kent", "red"],
-//     [18,220,18,[17,18,19],"Indiana", "red"],
-//     [19,240,20,[17,18,19],"Ill", "red"],
-//     [20,200,50,[4,12,20,28],"B&O RR"],
-//     [21,260,22,[21,22,23],"Atl", "yellow"],
-//     [22,260,22,[21,22,23],"Vent", "yellow"],
-//     [23,280,24,[21,22,23],"Marvin", "yellow"],
-//     [24,0,0,[],null],
-//     [25,300,26,[25,26,27],"Pac", "green"],
-//     [26,300,26,[25,26,27],"North", "green"],
-//     [27,320,28,[25,26,27],"Penns", "green"],
-//     [28,200,50,[4,12,20,28],"Short RR"],
-//     [29,350,35,[29,31],"Park P", "blue"],
-//     [30,0,0,[],null],
-//     [31,400,50,[29,31],"Board", "blue"]
-//   ]
-//   for(let i=0; i<cardData.length; i++ ){
-//     let c = new Card({
-//       id: cardData[i][0],
-//       color: null,
-//       name: cardData[i][4],
-//       price: cardData[i][1],
-//       isPurchased: null,
-//       ownerID: null,    // id val of User Object
-//       hasSet: false,    // if owner purchased the all the cards in the set
-//       rent: cardData[i][2],
-//       visitors: [], // list of User id values currently on the card
-//       otherCardsInSet: cardData[i][3],  // id vals of other Cards in set
-//       numberOfHouses: null, 
-//       houseRentMultiplier: null
-//     });
-
-//     c.save();
-//   }
-
-// }
-
-// // delete all documents from the 'User' collection
-// Card.deleteMany({})
-// .then(() => {
-//   console.log('Deleted all cards');
-//   createAllCards();
-// })
-// .catch((err) => console.log('Error deleting cards:', err));
-
 
 function createAllCards(){
   console.log('Recreating all the cards');

@@ -24,10 +24,10 @@ socket.addEventListener('open', function (event) {
     const message = JSON.parse(event.data);
     console.log('Received message from server:', message);
     switch(message.type){
-        
         case 'update balances and owned cards':
             console.log('time to update balances and owned cards');
             displayPlayers(message.players);
+            updateLog(message.log);
             break;
         case 'update turn':
             console.log('time to update turn');
@@ -36,14 +36,17 @@ socket.addEventListener('open', function (event) {
         case 'update balance go':
             console.log('time to update balance go');
             displayPlayers(message.players);
+            updateLog(message.log);
             break;
         case 'update balance rent paid':
             console.log('time to balance rent');
             displayPlayers(message.players);
+            updateLog(message.log);
             break;
         case 'update location after dice roll':
             console.log('time to update location after dice roll');
             displayNewLocation(message.players);
+            
             break;
         
     }
@@ -59,48 +62,19 @@ socket.addEventListener('open', function (event) {
 
 /////////////////////////////////////////////
 
+function updateLog(newLog){
+    // Create a new p element with the newLog text
+    const newLogElement = document.createElement('p');
+    newLogElement.textContent = newLog;
+  
+    // Append the new p element to the game-log element
+    document.getElementById('game-log').appendChild(newLogElement);
+  }
 
 
-  //var playersTurn = 1;
-  //let curPlayersTurn = playersTurn;
-    // let pList = ["index 0",new Player(1),new Player(2),new Player(3),new Player(4)] // create player list
   let pList = ["index 0"];
   let newLoc = 0;
-  //displayInitialLocations();
-//   let tList = [
-//     new Tile(0,0,0),
-//     new Tile(1,60,2),
-//     new Tile(2,0,0),
-//     new Tile(3,60,4),
-//     new Tile(4,200,50),
-//     new Tile(5,100,6),
-//     new Tile(6,100,6),
-//     new Tile(7,120,8),
-//     new Tile(8,0,0), 
-//     new Tile(9,140,10),
-//     new Tile(10,140,10),
-//     new Tile(11,160,12),
-//     new Tile(12,200,50),
-//     new Tile(13,180,14),
-//     new Tile(14,180,14),
-//     new Tile(15,200,16),
-//     new Tile(16,0,0), 
-//     new Tile(17,220,18),
-//     new Tile(18,220,18),
-//     new Tile(19,240,20),
-//     new Tile(20,200,50),
-//     new Tile(21,260,22),
-//     new Tile(22,260,22),
-//     new Tile(23,280,24),
-//     new Tile(24,0,0), 
-//     new Tile(25,300,26),
-//     new Tile(26,300,26),
-//     new Tile(27,320,28),
-//     new Tile(28,200,50),
-//     new Tile(29,350,35),
-//     new Tile(30,0,0),
-//     new Tile(31,400,50)]
-  //pList[3].money = 0
+  
 
 let tList = [];
 async function fetchCardsFromServer(){
@@ -289,15 +263,13 @@ async function rollDice(){
                 var d1 = Math.floor(Math.random() * 6)+1;
                 var d2 = Math.floor(Math.random() * 6)+1;
                 var total = d1 + d2
-
-
                 var newLocation = (potentialPlayer.position + total) % 32
 
                 if (newLocation < potentialPlayer.position){
                   collectGo(potentialPlayer.id)
                 }
 
-                if (newLocation == 24){
+                if (newLocation == 24){      // send player to jail
                     
                   newLocation = 8
                 }
@@ -475,7 +447,7 @@ function getUsername() {
 
 
 async function displayNewLocation(players){
-    //console.log("should display everyones location")
+    console.log("should display everyones location")
     var [newLocs, colors] = await generateNewLocs(players);
     //console.log(newLocs)
     //console.log(oldLocs)
@@ -492,7 +464,7 @@ async function displayNewLocation(players){
         var curLocString = oldLoc.toString()+"p"+plusOne.toString();
         //document.getElementById(curLocString).innerText = ""
         document.getElementById(curLocString).innerHTML = ""
-
+        console.log("redrawing the players")
         //console.log("plusONe:" + plusOne)
         var newLocString = newLoc.toString()+"p"+plusOne.toString();
         //console.log("NLS"+newLocString)
@@ -776,8 +748,8 @@ async function displayPlayers(items){
     div.innerHTML = `
     <h2>${currentPlayer.username}</h2>
     <p class="balance"> <span class="dollar-sign">$</span>${currentPlayer.balance}</p>
-    <p>Properties: ${currentPlayer.listOfCardsOwned.sort((a, b) => a - b).join(', ')}</p>
-    <button class='show-properties' id='${currentPlayer.id}'>show</button>
+    <p></p>
+    <button class='show-properties' id='${currentPlayer.id}'>Show Properties</button>
     
     `;
     outputArea.appendChild(div);
@@ -794,8 +766,8 @@ async function displayPlayers(items){
             div.innerHTML = `
             <h2>${item.username}</h2>
             <p class="balance"> <span class="dollar-sign">$</span>${item.balance}</p>
-            <p>Properties: ${item.listOfCardsOwned.sort((a, b) => a - b).join(', ')}</p>
-            <button class='show-properties' id='${item.id}'>show</button>
+            <p></p>
+            <button class='show-properties' id='${item.id}'>Show Properties</button>
             `;
             
             outputArea.appendChild(div);
