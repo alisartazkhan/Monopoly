@@ -1,4 +1,9 @@
-//boardfunctions
+/*
+Name: Ali Sartaz Khan
+Course: CSc 337
+Description:
+
+*/
 
 var IP_ADDRESS = 'http://localhost:3000/';
 
@@ -414,31 +419,31 @@ async function checkProperty(player, newLocation) {
       });
   }
 
-  function getRent(prop){
+
+function getRent(prop){
     // checks if there is a monopoly
     if (prop.hasSet){
         return prop.rent*3;
     }
     return prop.rent;
-  }
+}
     
-    function updatePlayerAndCard(playerID, newBalance, propertyID){
-        fetch(IP_ADDRESS + 'update/pac/' + playerID + '/' + newBalance + '/' + propertyID)
-        .then((response) => {return response.text();})
-        .then((text) => {console.log(text);})
-        .catch((err) => {console.log("Cant update player and card info in server")});
-    }
+function updatePlayerAndCard(playerID, newBalance, propertyID){
+    fetch(IP_ADDRESS + 'update/pac/' + playerID + '/' + newBalance + '/' + propertyID)
+    .then((response) => {return response.text();})
+    .then((text) => {console.log(text);})
+    .catch((err) => {console.log("Cant update player and card info in server")});
+}
 
 
 
-    function waitForClick(buttonId1, buttonId2) {
-        return new Promise(resolve => {
-          const button1 = document.getElementById(buttonId1);
-          const button2 = document.getElementById(buttonId2);
-          button1.addEventListener('click', () => resolve(button1), { once: true });
-          button2.addEventListener('click', () => resolve(button2), { once: true });
-        });
-      }
+function waitForClick(buttonId1, buttonId2) {
+    return new Promise(resolve => {
+        const button1 = document.getElementById(buttonId1);
+        const button2 = document.getElementById(buttonId2);
+        button1.addEventListener('click', () => resolve(button1), { once: true });
+        button2.addEventListener('click', () => resolve(button2), { once: true });
+    });}
 
 async function updatePlayerLocation(myID, newLocation){
     fetch(IP_ADDRESS + 'update/location/' + myID + '/' + newLocation)
@@ -474,7 +479,7 @@ function getUsername() {
   }
 
 
-  async function fetchClientIDFromServer(username){
+async function fetchClientIDFromServer(username){
     const response = await fetch(IP_ADDRESS + 'get/userID/'+username);
     const text = await response.text();
     console.log("Server output for ID: " + text);
@@ -587,126 +592,6 @@ function getPlayerList() {
   }
   
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*function displayFunction(){
-    for (var i = 0; i < 16; i++){
-        var id = i.toString(10);
-        displayMessages(id);
-    }
-}
-
-function restartFunction(){
-    createOriginalSpaces();
-    displayFunction();
-
-}
-
-function createOriginalSpaces() {
-    
-    var xhttp = new XMLHttpRequest();
-    xhttp.open("POST", "/add/space/create", true);
-
-    xhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-
-    xhttp.onreadystatechange = () => { // Call a function when the state changes.
-    if (xhttp.readyState === XMLHttpRequest.DONE && xhttp.status === 200) {
-    // Request finished. Do processing here.
-  }
-}
-
-    
-    xhttp.send();
-    console.log("start");
-
-    
-    }
-
-
-    function displayMessages(id) {
-        fetch('/get/spaces/'+id)
-            .then((res) =>{
-                //console.log(res);
-                return res.text()})
-            .then((res) => {
-                console.log(res);
-                var obj = JSON.parse(res);
-                console.log(obj);
-                var text = obj[0].name;
-                text = text + '\n' + obj[0].cost;
-                document.getElementById(id).innerText = text;
-                document.getElementById(id).style.backgroundColor = obj[0].color;
-                        }  
-            )
-        }
-*/
-
-// displays property information
-// const infoButton = document.querySelector('#info-button');
-// const infoPopup = document.querySelector('#info-popup');
-// const closeButton = document.querySelector('.close-button');
-// let isPopupVisible = false; // Keep track of popup visibility state
-
-// function togglePopup() {
-//     isPopupVisible = !isPopupVisible; // Toggle the visibility state
-//     infoPopup.classList.toggle('visible', isPopupVisible); // Toggle the 'visible' class based on state
-// }
-
-// infoButton.addEventListener('click', togglePopup);
-// closeButton.addEventListener('click', togglePopup);
-
-
-
-
 async function getPlayers(){
     let url = 'get/players';
     const properties = await fetch(IP_ADDRESS + url);
@@ -812,38 +697,38 @@ async function displayPlayers(items){
     });
 
 
-    // displays property information
-    const showButtons = document.querySelectorAll('.show-properties');
-    const propertyData = document.querySelector('#property-data-popup');
-    
-    let isWindowVisible = false; // Keep track of popup visibility state
+// displays property information
+const showButtons = document.querySelectorAll('.show-properties');
+const propertyData = document.querySelector('#property-data-popup');
 
-    async function togglePropertyWindow(id) {
-        console.log('id: '+id);
-        let properties = await getPlayerProperties(id);
-        // sets up the popup window for player properties
-        createPropertiesWindow(properties);
-        isWindowVisible = !isWindowVisible; // Toggle the visibility state
-        propertyData.classList.toggle('visible', isWindowVisible); // Toggle the 'visible' class based on state
+let isWindowVisible = false; // Keep track of popup visibility state
 
-        const closePropertyData = document.querySelector('#close-property-window');
-        closePropertyData.addEventListener('click', closePropertyWindow);
-    }
+async function togglePropertyWindow(id) {
+    console.log('id: '+id);
+    let properties = await getPlayerProperties(id);
+    // sets up the popup window for player properties
+    createPropertiesWindow(properties);
+    isWindowVisible = !isWindowVisible; // Toggle the visibility state
+    propertyData.classList.toggle('visible', isWindowVisible); // Toggle the 'visible' class based on state
+
+    const closePropertyData = document.querySelector('#close-property-window');
+    closePropertyData.addEventListener('click', closePropertyWindow);
+}
 
 
-    function closePropertyWindow(){
-        isWindowVisible = !isWindowVisible; // Toggle the visibility state
-        propertyData.classList.toggle('visible', isWindowVisible); // Toggle the 'visible' class based on state
-    }
+function closePropertyWindow(){
+    isWindowVisible = !isWindowVisible; // Toggle the visibility state
+    propertyData.classList.toggle('visible', isWindowVisible); // Toggle the 'visible' class based on state
+}
 
-    showButtons.forEach(button => {
-        button.addEventListener('click', event => {
-            const id = event.target.id;
-            togglePropertyWindow(id);
-        });
-    })
-    
-    
+showButtons.forEach(button => {
+    button.addEventListener('click', event => {
+        const id = event.target.id;
+        togglePropertyWindow(id);
+    });
+})
+
+
 }
 
 
