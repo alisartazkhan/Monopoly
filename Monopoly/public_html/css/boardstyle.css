@@ -49,6 +49,7 @@ table{
     margin: 10px;
     background:rgba(13, 13, 102, 0.493);
     border-radius: 15px;
+    min-height: 90px;
     box-shadow: rgba(86, 86, 213, 0.392) 0px 10px 20px, rgba(86, 86, 213, 0.54) 0px 6px 6px;
 }
 .player-info h2{
@@ -70,7 +71,7 @@ table{
     
 }
 p.balance{
-    width:20%;
+    width:17%;
     float:right;
     font-size: 23px;
     font-weight: bold;
@@ -90,6 +91,13 @@ p.balance{
 
 #yellow-player{ background: #D49F15;}
 #blue-player{ background:#1574D4;}
+
+.show-properties{
+  border-radius: 9px;
+  background:rgb(90, 89, 89);
+  color:rgb(246, 243, 230);
+  height:30px;
+}
 
 
 /* styles for the pop-up window */

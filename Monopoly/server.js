@@ -137,8 +137,8 @@ function addSession(user){
 }
 
 
-// 60_000 miliseconds
-const SESSION_LENGTH = 60_000;
+// login session lasts 3 minutes
+const SESSION_LENGTH = 60_000 * 3;
 /**
  * checks for session time out
  * @returns boolean value
@@ -206,12 +206,15 @@ function authenticate(req, res, next){
 function resetUserLoginSession(req, res){
   console.log("resetting login session");
   let loginCookie = req.cookies.login;
-  let username = loginCookie.username;
+  if(loginCookie !== null){
+    let username = loginCookie.username;
 
-  sessions[username].start = Date.now();
+    sessions[username].start = Date.now();
+    
+    loginCookie.maxAge = SESSION_LENGTH;
+    res.cookie('login', loginCookie, { maxAge: SESSION_LENGTH });
+  }
   
-  loginCookie.maxAge = SESSION_LENGTH;
-  res.cookie('login', loginCookie, { maxAge: SESSION_LENGTH });
 }
 ////////////////////// END of SESSION CONTROL/////////////////////////////////
 

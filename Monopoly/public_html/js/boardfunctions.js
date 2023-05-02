@@ -104,7 +104,7 @@ socket.addEventListener('open', function (event) {
 
 let tList = [];
 async function fetchCardsFromServer(){
-    const cards = await fetch('/get/cards/');
+    const cards = await fetch(IP_ADDRESS + 'get/cards/');
     const data = await cards.json();
     return data;
 }
@@ -193,7 +193,7 @@ function updatePlayers(){
 
     // console.log(jsonPlayersToSend);
     const data = JSON.stringify(jsonPlayersToSend);
-    let p = fetch(url, {
+    let p = fetch(IP_ADDRESS + url, {
         method: 'POST',
         body: data, // skips "index 0" in the pList
         headers: {"Content-Type": "application/json"}
@@ -419,7 +419,7 @@ async function checkProperty(player, newLocation) {
   }
     
     function updatePlayerAndCard(playerID, newBalance, propertyID){
-        fetch('update/pac/' + playerID + '/' + newBalance + '/' + propertyID)
+        fetch(IP_ADDRESS + 'update/pac/' + playerID + '/' + newBalance + '/' + propertyID)
         .then((response) => {return response.text();})
         .then((text) => {console.log(text);})
         .catch((err) => {console.log("Cant update player and card info in server")});
@@ -437,7 +437,7 @@ async function checkProperty(player, newLocation) {
       }
 
 async function updatePlayerLocation(myID, newLocation){
-    fetch('update/location/' + myID + '/' + newLocation)
+    fetch(IP_ADDRESS + 'update/location/' + myID + '/' + newLocation)
     .then((response) => {return response.text();})
     .then((text) => {console.log(text);})
     .catch((err) => {console.log("Cant update player location in server")});
@@ -467,7 +467,7 @@ function getUsername() {
 
 
   async function fetchClientIDFromServer(username){
-    const response = await fetch('/get/userID/'+username);
+    const response = await fetch(IP_ADDRESS + 'get/userID/'+username);
     const text = await response.text();
     console.log("Server output for ID: " + text);
     return text;
@@ -700,8 +700,8 @@ closeButton.addEventListener('click', togglePopup);
 
 
 async function getPlayers(){
-    let url = '/get/players';
-    const properties = await fetch(url);
+    let url = 'get/players';
+    const properties = await fetch(IP_ADDRESS + url);
     const data = await properties.json();
     return data;
 }
@@ -776,8 +776,8 @@ async function displayPlayers(items){
     div.innerHTML = `
     <h2>${currentPlayer.username}</h2>
     <p class="balance"> <span class="dollar-sign">$</span>${currentPlayer.balance}</p>
-    <p>Properties: ${currentPlayer.listOfCardsOwned.sort((a, b) => a - b).join(', ')}</p>
-    <button class='show-properties' id='${currentPlayer.id}'>show</button>
+    <p></p>
+    <button class='show-properties' id='${currentPlayer.id}'>Properties</button>
     
     `;
     outputArea.appendChild(div);
@@ -794,8 +794,8 @@ async function displayPlayers(items){
             div.innerHTML = `
             <h2>${item.username}</h2>
             <p class="balance"> <span class="dollar-sign">$</span>${item.balance}</p>
-            <p>Properties: ${item.listOfCardsOwned.sort((a, b) => a - b).join(', ')}</p>
-            <button class='show-properties' id='${item.id}'>show</button>
+            <p></p>
+            <button class='show-properties' id='${item.id}'>Properties</button>
             `;
             
             outputArea.appendChild(div);
