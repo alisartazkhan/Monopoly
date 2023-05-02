@@ -11,6 +11,7 @@ const hostname = 'localhost';
 const port = 3000;
 const app = express();
 app.use(cookieParser());
+app.use('/app/*', authenticate);    //If authenticate fails, doesn't open everything else
 app.use(express.static('public_html'))
 app.use('/local-files', express.static('/'));
 app.use(express.json()) // for json
@@ -72,9 +73,9 @@ var UserSchema = new Schema({
 var User = mongoose.model("UserData", UserSchema);
 
 // delete all documents from the 'User' collection
-// User.deleteMany({})
-// .then(() => console.log('Deleted all user data'))
-// .catch((err) => console.log('Error deleting users:', err));
+User.deleteMany({})
+.then(() => console.log('Deleted all user data'))
+.catch((err) => console.log('Error deleting users:', err));
 
 Turn.deleteMany({})
 .then(() => {
@@ -99,13 +100,6 @@ app.get('/favicon.ico', (req, res) => {
 
 ////////////////////////////////////////
 const wss = new WebSocket.Server({ port: 3080 });
-// Broadcast a message to all clients
-// wss.clients.forEach((client) => {
-//   if (client.readyState === WebSocket.OPEN) {
-//     console.log('sending a message to clients')
-//     client.send('Hello, clients!');
-//   }
-// });
 const clients = new Set();
 
 wss.on('connection', (ws) => {
@@ -128,34 +122,85 @@ wss.on('connection', (ws) => {
 });
 
 
-// let random = true;
+////////////////////// START of SESSION CONTROL/////////////////////////////////
+
+let sessions = [];
+/**
+ * creates a new session when a user logs in
+ * @returns the session id used tp determine session time out
+ */
+function addSession(user){
+  let sessionId = Math.floor(Math.random() + 100000);
+  let sessionStart = Date.now();
+  sessions[user] = { 'sid':sessionId, 'start':sessionStart};
+  return sessionId;
+}
 
 
-// setInterval(()=>{
-//   if(random){
-//     clients.forEach((client) => {
-//       console.log("state: "+client.readyState);
-//       if (client.readyState === WebSocket.OPEN) {
-//         client.send('update player balance');
-//       }
-//     });
-//     random = ! random;
-//   }else{
-//     clients.forEach((client) => {
-//       console.log("state: "+client.readyState);
-//       if (client.readyState === WebSocket.OPEN) {
-//         client.send('update turn');
-//       }
-//     });
-//     random = ! random;
-//   }
-  
-// }, 2000);
-////////////////////////////
+// 60_000 miliseconds
+const SESSION_LENGTH = 60_000;
+/**
+ * checks for session time out
+ * @returns boolean value
+ */
+function doesUserHaveSession(user){
+  let entry = sessions[user.username];
+  if (entry != undefined){
+    return entry.sid == user.sid;
+  }
+  return false;
+}
 
+/**
+ * cleans up user session causing session time out
+ * 
+ * var obj = { first: "John", last: "Doe" };
+ * for (const key of Object.keys(obj)) {
+    console.log(key, obj[key]);
+    
+}
 
+var thisIsObject= {
+   'Cow' : 'Moo',
+   'Cat' : 'Meow',
+   'Dog' : 'Bark'
+};
 
+delete thisIsObject["Cow"];
+ */
+function cleanupSessions () {
+  let currentTime = Date.now();
+  for (i in sessions) {
+    let sess = sessions[i];
+    if (sess.start + SESSION_LENGTH < currentTime){
+      console.log("Removing session id")
+      delete sessions[i];
+    }
+  }
+}
+// checks for session time every 2 seconds
+setInterval(cleanupSessions, 2000);
 
+/**
+ * checks if user has session time when he/she tries to access a web page
+ * takes the user to login page if their session is over.
+ * @returns 
+ */
+function authenticate(req, res, next){
+  console.log('authenticating session');
+  let c = req.cookies;
+  if (c && Object.getPrototypeOf(c) !== null){
+    let result = doesUserHaveSession(c.login);
+    // console.log(result);
+    if (result) {
+      next();
+      return;
+    }
+  }
+  console.log('redirecting to login page');
+  res.redirect('/index.html');
+}
+////////////////////// END of SESSION CONTROL/////////////////////////////////
 
 app.get('/get/cards/', (req, res) => {
   Card.find({}).exec()
@@ -722,6 +767,9 @@ app.get('/account/login/:USERNAME/:PASSWORD', (req, res) => {
         }
       });
       if (authenticated) {
+
+        let id = addSession(u);
+        res.cookie('login', {username: u, sid : id}, {maxAge:SESSION_LENGTH});
         res.end('SUCCESS');
       } else {
         res.end('Incorrect username or password');

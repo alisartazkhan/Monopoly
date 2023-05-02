@@ -30,7 +30,7 @@ function toggleReady(btn) {
     isEveryoneReady().then((everyoneReady) => {
       console.log("Main " + everyoneReady);
       if (everyoneReady === true) {
-        window.location.href = `/board.html?username=${encodeURIComponent(username)}`;
+        window.location.href = `/app/board.html?username=${encodeURIComponent(username)}`;
         clearInterval(intervalid);
       }
     });

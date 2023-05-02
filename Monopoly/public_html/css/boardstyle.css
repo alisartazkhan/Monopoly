@@ -36,7 +36,7 @@ table{
     flex-direction: column;
     float:right;
     width:25%;
-    background:rgba(173, 216, 230, 0.309);
+    /* background:rgba(173, 216, 230, 0.309); */
     margin:4% 5% 0 0;
     border-radius: 15px;
 
