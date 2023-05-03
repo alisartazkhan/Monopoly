@@ -1,11 +1,9 @@
 /**
- * Name: Ali Sartaz Khan
- * Course:
- * Description: 
+ * Name: Ali Sartaz Khan, Sam Richardson, Khojiakbar Yokubjonov
+ * Course: CSC337
+ * Description: This is the client side that handles the user login.
  */
 
-//  used when the server is running in the cloud
-// const hostname11 = '204.48.28.205';
 const hostname = '137.184.216.183'
 const port = 3000;
 
@@ -43,12 +41,15 @@ function addUser(){
     
 }
 
+/**
+ * Handles the user login. After successful validation, it will take the user to
+ * the waiting room page.
+ */
 function login(){
     showLoginMessage(null);
     let url =  '/account/login/'
     let userName = document.getElementById('username').value;
     let ps = document.getElementById('password').value;
-    // console.log(userName + " " +  ps);
     if(userName !=="" && ps !== ""){
          url += userName + '/' + ps + '/';
         try{
@@ -74,7 +75,11 @@ function login(){
         
     }
 }
-// display message for invalid login credentials
+
+/**
+ * displays message for invalid login credentials
+ * @param {*} message 
+ */
 function showLoginMessage(message){
     document.getElementById("invalid-login").innerText = message;
 }
