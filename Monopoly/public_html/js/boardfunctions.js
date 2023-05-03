@@ -862,6 +862,7 @@ const propertyData = document.querySelector('#property-data-popup');
         createPropertiesWindow(properties);
         isWindowVisible = !isWindowVisible; // Toggle the visibility state
         propertyData.classList.toggle('visible', isWindowVisible); // Toggle the 'visible' class based on state
+        
 
 
 
