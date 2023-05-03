@@ -7,7 +7,6 @@ makes
 */
 
 var IP_ADDRESS = 'http://137.184.216.183:3000/';
-
 var oldLocs = []
 let gameEnded = false;
 let winner = null;

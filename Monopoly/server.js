@@ -1,7 +1,14 @@
 /**
- * Name:
- * Course:
- * Description:
+ * Name: Ali Sartaz Khan, Sam Richardson, Khojiakbar Yokubjonov
+ * Course: CSC337
+ * Description: implements the server for The Monopoly game. The game state is stored in MongoDB
+ * The server uses the following modules:
+*       express
+*       mongoose
+*       crypto
+*       ws
+*       body-parse
+*       cookie-parser
  * 
  * 
  */

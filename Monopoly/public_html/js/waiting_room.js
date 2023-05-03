@@ -1,7 +1,8 @@
 /**
- * Name: 
- * Course:
- * Description:
+ Name: Ali Sartaz Khan, Sam Richardson, Khojiakbar Yokubjonov
+ * Course: CSC337
+ * Description: This is the client side that handles the waiting-room.
+ *  The users are kept in the waiting-room until they are all ready to start the game.
  */
 
 
@@ -45,7 +46,10 @@ function toggleReady(btn) {
 }
 
   
-
+/**
+ * Sends a request to the server to check if all players are ready.
+ * @returns a boolean value: true: everyone ready, false: not yet.
+ */
 async function isEveryoneReady() {
   let url = IP_ADDRESS + 'isReady/';
   const response = await fetch(url);
@@ -70,7 +74,9 @@ function getUsername() {
   return username;
 }
 
-
+/**
+ * it loads the waiting room page
+ */
 function loadWaitingRoom(){
   var username = getUsername();
   document.getElementById('welcome_msg').innerText = "Welcome, " + username + "!";
@@ -86,7 +92,9 @@ function loadWaitingRoom(){
 }
 
 
-
+/**
+ *  takes the user to the help page.
+ */
 function helpPage(){
   window.location.href = './help.html';
 }
