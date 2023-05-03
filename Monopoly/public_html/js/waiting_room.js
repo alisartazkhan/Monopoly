@@ -5,7 +5,7 @@
  */
 
 
-var IP_ADDRESS = 'http://localhost:3000/';
+var IP_ADDRESS = 'http://137.184.216.183:3000/';
 
 const forms = document.getElementsByTagName('form');
 // Stop form from reloading the page

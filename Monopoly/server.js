@@ -148,7 +148,7 @@ function addSession(user){
 
 
 // login session lasts 3 minutes
-const SESSION_LENGTH = 60_000 * 3;
+const SESSION_LENGTH = 60000 * 3;
 /**
  * checks for session time out
  * @returns boolean value
