@@ -1,3 +1,11 @@
+/*
+Name: Ali Sartaz Khan, Sam Richardson, Khojiakbar Yokubjonov
+Course: CSc 337
+Description: This is the css page for the login and signup pages. It specifies
+the color and font, as well as the button and user login fail display style that
+will occur if the password is incorrect.
+*/
+
 body {
   margin: 0;
   background-color: rgba(43, 186, 43, 0.524);
