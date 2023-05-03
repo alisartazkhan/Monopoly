@@ -33,7 +33,7 @@ async function setMetaData(){
 Socket created and listens for updates to turn, players, and cards
 has cases for updating balances, paying rent, moving after dice roll, etc.
 */
-const socket = new WebSocket('ws://localhost:3080');
+const socket = new WebSocket('ws://137.184.216.183:3080');
 socket.addEventListener('open', function (event) {
     console.log('WebSocket connection established');
   });
