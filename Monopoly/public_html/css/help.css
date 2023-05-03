@@ -1,3 +1,11 @@
+/*
+Name: Ali Sartaz Khan, Sam Richardson, Khojiakbar Yokubjonov
+Course: CSc 337
+Description: This is the css page for the help page. It specifies
+the green color for he background, the center text align, and all
+the other basic traits of the help page.
+*/
+
 body {
     margin: 0;
     background-color: rgba(43, 186, 43, 0.524);

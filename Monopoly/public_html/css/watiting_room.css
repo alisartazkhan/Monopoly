@@ -1,3 +1,11 @@
+/*
+Name: Ali Sartaz Khan, Sam Richardson, Khojiakbar Yokubjonov
+Course: CSc 337
+Description: This is the css page for the waiting room page. THis is very
+similar style to the login and signup pages, with same green background
+and text. The only thing different displayed is the ready text and the player
+color
+*/
 body {
   margin: 0;
   background-color: rgba(43, 186, 43, 0.524);
