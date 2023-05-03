@@ -28,6 +28,7 @@ async function setMetaData(){
 
 }
 
+//////////////////////////////////////////////
 /*
 Socket created and listens for updates to turn, players, and cards
 has cases for updating balances, paying rent, moving after dice roll, etc.
@@ -72,12 +73,13 @@ socket.addEventListener('open', function (event) {
     }
   });
   
-  //closes socket
   socket.addEventListener('close', function (event) {
     console.log('WebSocket connection closed');
   });
 
-
+//   socket.onmessage = (event) => {
+//     console.log(event.data);
+//   };
 
 /////////////////////////////////////////////
 
@@ -125,9 +127,11 @@ function updateLog(newLog){
     document.getElementById('game-log').appendChild(newLogElement);
   }
 
-//set global variables
-let pList = ["index 0"];
-let newLoc = 0; 
+
+  let pList = ["index 0"];
+  let newLoc = 0;
+  
+
 let tList = [];
 
 /*
@@ -168,8 +172,7 @@ p.then(response => {
 
 //setInterval(updateTurn, 2000);
 
- 
-/*
+ /*
 purpose: fetches the id turn from the server
 params: none
 return: the integer representing the turn id
@@ -286,29 +289,30 @@ function updateCards(){
 
 //setInterval(updateCards, 2000);
   
+
 /*
 purpose: locally adjusts user and card data to represent client buying property
 currenty located at
 params: none
 return: none
 */
-function buyProp(){
-if (tList[newLoc].owner == 0 && tList[newLoc].price > 0){
-    pList[curPlayersTurn].money = pList[curPlayersTurn].money - tList[newLoc].price;
-    var moneyString = "p"+curPlayersTurn.toString()+"money";
-    console.log(moneyString)
-    document.getElementById(moneyString).innerText = pList[curPlayersTurn].money
-    tList[newLoc].owner = curPlayersTurn;
-    var displayString = "p"+curPlayersTurn.toString()+"props";
-    var propString = " " + newLoc.toString()
-    document.getElementById(displayString).innerText += propString
+  function buyProp(){
+    if (tList[newLoc].owner == 0 && tList[newLoc].price > 0){
+        pList[curPlayersTurn].money = pList[curPlayersTurn].money - tList[newLoc].price;
+        var moneyString = "p"+curPlayersTurn.toString()+"money";
+        console.log(moneyString)
+        document.getElementById(moneyString).innerText = pList[curPlayersTurn].money
+        tList[newLoc].owner = curPlayersTurn;
+        var displayString = "p"+curPlayersTurn.toString()+"props";
+        var propString = " " + newLoc.toString()
+        document.getElementById(displayString).innerText += propString
 
-}
-else {
-    console.log("property cannot be bought")
-}
-console.log("porp bot")
-
+    }
+    else {
+        console.log("property cannot be bought")
+    }
+    console.log("porp bot")
+    
 }
 
 /*
@@ -323,7 +327,7 @@ function incrementTurnPromise() {
     });
   }
 
-/*
+  /*
 purpose: function that runs on click of rolldice button to call functions that
 represent a players turn
 params: none
@@ -398,6 +402,7 @@ function collectGo(userID) {
   .then((response) => {return response.text();})
   .catch((err) => {console.log("ERROR: adding money from passing go")})
 }
+
 
 /*
 purpose: returns card object matching given index
@@ -480,13 +485,13 @@ async function checkProperty(player, newLocation) {
   }
 
 
-  /*
+   /*
 purpose: returns rent of given property depending of if made into
 a monopoly yet
 params: property object seraching for rent
 return: number reprenting amount of dollars owed
 */
-  function getRent(prop){
+function getRent(prop){
     // checks if there is a monopoly
     if (prop.hasSet){
         return prop.rent*3;
@@ -510,7 +515,6 @@ function updatePlayerAndCard(playerID, newBalance, propertyID){
 }
 
 
-
 /*
 purpose: function that stalls program so other players cant roll dice while player
 decides if they will buy property or not
@@ -523,10 +527,10 @@ function waitForClick(buttonId1, buttonId2) {
         const button2 = document.getElementById(buttonId2);
         button1.addEventListener('click', () => resolve(button1), { once: true });
         button2.addEventListener('click', () => resolve(button2), { once: true });
-    });
-    }
+    });}
 
-    /*
+
+      /*
 purpose: updates new location of player in mongodb
 params: myID: id of curren player
 params: newLocation: new location of player
@@ -538,7 +542,6 @@ async function updatePlayerLocation(myID, newLocation){
     .then((text) => {console.log(text);})
     .catch((err) => {console.log("Cant update player location in server")});
 }
-
 
 /*
 purpose: recursive function hat increments turn and sends turn object back to server
@@ -563,6 +566,7 @@ async function postTurnValue(val, playerCount, playerList){
     .catch((err) => {console.log("cant update player turn")})
 }
 
+
 /*
 purpose: Get username from URL and returns it
 params: none
@@ -574,7 +578,11 @@ function getUsername() {
     return username;
   }
 
-
+/*
+purpose: get ID from server based on username
+params: username
+return: number respresenting ID
+*/
 async function fetchClientIDFromServer(username){
     const response = await fetch(IP_ADDRESS + 'get/userID/'+username);
     const text = await response.text();
@@ -642,7 +650,6 @@ async function generateNewLocs(list){
 }
 
 
-
 /*
 purpose: calls incrementPlayerNum function
 params: none
@@ -650,7 +657,10 @@ return: none
 */
 function incrementTurn(){
     incrementPlayerNum();
-    //add more later
+    //while (pList[playersTurn].money <= 0){
+     //   incrementPlayerNum();
+    //}
+    //document.getElementById("pTurn").innerText = playersTurn
 }
 
 
@@ -667,6 +677,7 @@ function incrementPlayerNum(){
     //.log(playersTurn);
 }
 
+
 /*
 purpose: fetch username from server given userID
 params: userID of player seraching for
@@ -682,7 +693,7 @@ function fetchUsernameFromServer(userId) {
   }
   
 
-/*
+  /*
 purpose: Updatse turn display on board to represent whos turn it is
 params: none
 return: none
@@ -723,22 +734,14 @@ function getPlayerList() {
       .then((text) => JSON.parse(text))
       .catch((err) => console.log("Can't get players list from server."));
   }
+  
 
-
-
-
-/*
-purpose: Get playerslist from server
-params: none
-return: player list
-*/
 async function getPlayers(){
     let url = 'get/players';
     const properties = await fetch(IP_ADDRESS + url);
     const data = await properties.json();
     return data;
 }
-
 
 /**
  * Fetches the JSON card objs that belongs to a given player
@@ -751,7 +754,6 @@ async function getPlayerProperties(playerID){
     const properties = await results.json();
     return properties;
 }
-
 
 /*
 purpose: adds the functinoality to the show properties button to show each players list of properties
@@ -791,7 +793,7 @@ function createPropertiesWindow(properties){
 }
 
 /*
-purpose: displaye player information for each player
+purpose: displays player information for each player
 params: list of players
 return: none
 */
@@ -843,12 +845,14 @@ async function displayPlayers(items){
         }
         
     });
-}
 
 
 // displays property information
 const showButtons = document.querySelectorAll('.show-properties');
 const propertyData = document.querySelector('#property-data-popup');
+
+let isWindowVisible = false; // Keep track of popup visibility state
+
 
     /*
 purpose: inner function to toggle whether properties are show or not
@@ -863,6 +867,8 @@ async function togglePropertyWindow(id) {
     isWindowVisible = !isWindowVisible; // Toggle the visibility state
     propertyData.classList.toggle('visible', isWindowVisible); // Toggle the 'visible' class based on state
 
+    const closePropertyData = document.querySelector('#close-property-window');
+    closePropertyData.addEventListener('click', closePropertyWindow);
 }
 
 /*
@@ -875,7 +881,15 @@ function closePropertyWindow(){
     propertyData.classList.toggle('visible', isWindowVisible); // Toggle the 'visible' class based on state
 }
 
+showButtons.forEach(button => {
+    button.addEventListener('click', event => {
+        const id = event.target.id;
+        togglePropertyWindow(id);
+    });
+})
 
+
+}
 
 
 
@@ -890,7 +904,6 @@ function getCurrentUrlSearchParams(){
     const queryString = window.location.search;
     return new URLSearchParams(queryString);
 }
-
 
 /*
 purpose: returns the player object associated with the given username
