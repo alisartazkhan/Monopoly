@@ -851,31 +851,31 @@ const showButtons = document.querySelectorAll('.show-properties');
 const propertyData = document.querySelector('#property-data-popup');
 
     /*
-    purpose: inner function to toggle whether properties are show or not
-    params: id of player window
-    return: none
-    */
-    async function togglePropertyWindow(id) {
-        console.log('id: '+id);
-        let properties = await getPlayerProperties(id);
-        // sets up the popup window for player properties
-        createPropertiesWindow(properties);
-        isWindowVisible = !isWindowVisible; // Toggle the visibility state
-        propertyData.classList.toggle('visible', isWindowVisible); // Toggle the 'visible' class based on state
-
-
-
-    /*
-    purpose: closes the property window
-    params: none
-    return: none
-    */
-    function closePropertyWindow(){
-        isWindowVisible = !isWindowVisible; // Toggle the visibility state
-        propertyData.classList.toggle('visible', isWindowVisible); // Toggle the 'visible' class based on state
-    }
+purpose: inner function to toggle whether properties are show or not
+params: id of player window
+return: none
+*/
+async function togglePropertyWindow(id) {
+    console.log('id: '+id);
+    let properties = await getPlayerProperties(id);
+    // sets up the popup window for player properties
+    createPropertiesWindow(properties);
+    isWindowVisible = !isWindowVisible; // Toggle the visibility state
+    propertyData.classList.toggle('visible', isWindowVisible); // Toggle the 'visible' class based on state
 
 }
+
+/*
+purpose: closes the property window
+params: none
+return: none
+*/
+function closePropertyWindow(){
+    isWindowVisible = !isWindowVisible; // Toggle the visibility state
+    propertyData.classList.toggle('visible', isWindowVisible); // Toggle the 'visible' class based on state
+}
+
+
 
 
 
