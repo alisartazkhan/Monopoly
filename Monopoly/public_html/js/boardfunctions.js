@@ -1,7 +1,8 @@
 /*
-Name: Ali Sartaz Khan
+Name: Ali Sartaz Khan, Sam Richardson, Khojiakbar Yokubjonov
 Course: CSc 337
-Description:
+Description: This is the client side that handles everything locally for each client. It
+makes 
 
 */
 

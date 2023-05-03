@@ -1,3 +1,11 @@
+/*
+Name: Ali Sartaz Khan, Sam Richardson, Khojiakbar Yokubjonov
+Course: CSc 337
+Description: This is the css page for the game page. It sets the colors
+for the board, and creates the border for the outer section of the table
+that represents the properties in monopoly. It also specifies the style
+of the player info tabs
+*/
 body{
     margin:0%;
     background-color: rgba(39, 190, 39, 0.524);
