@@ -1,9 +1,10 @@
 /*
 Name: Ali Sartaz Khan, Sam Richardson, Khojiakbar Yokubjonov
 Course: CSc 337
-Description: This is the client side that handles everything locally for each client. It
-makes 
-
+Description: This is the client side that handles everything locally for each client. It has
+requests to get the data from the server and mongodb, and stores what ever information it
+needs locally. It also contains all the logic for buying properties and moving and any actions
+locally, and then sends the changes to the server to update.
 */
 
 var IP_ADDRESS = 'http://137.184.216.183:3000/';
