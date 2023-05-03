@@ -1,10 +1,12 @@
-/**
- * Name:
- * Course:
- * Description:
- * 
- * 
- */
+/*
+Name: Ali Sartaz Khan, Sam Richardson, Khojiakbar Yokubjonov
+Course: CSc 337
+Description: This is the server side of the project. It creates 3 schemas for the
+mongodb and then runs the server at the desired ipaddress. It used WebSocket to
+transfer the game information back and forth between the server and the client. The
+changes it recieves from the client are brought into effect in the mongodb and any
+local server changes.
+*/
 
 
 const mongoose = require('mongoose');
