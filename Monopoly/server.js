@@ -34,17 +34,18 @@ mongoose.connection.on('error', () => {
   console.log('There was a problem connecting to mongoDB');
 });
 
+
 const { receiveMessageOnPort } = require('worker_threads');
 const { match } = require('assert');
 var Schema = mongoose.Schema;
 
-
+// creates Turn schema
 var TurnSchema = new Schema({
   playerTurn: Number
 });
 const Turn = mongoose.model('Turn', TurnSchema);
 
-
+//creates Card schema
 var CardSchema = new Schema({ 
   id: Number,  // index in board list on client side
   color: String,
@@ -62,7 +63,7 @@ var CardSchema = new Schema({
 const Card = mongoose.model('Card', CardSchema);
 
 
-// UserSchema
+// Creates User schema
 var UserSchema = new Schema({
   id: Number,
   username: String,
@@ -81,6 +82,7 @@ User.deleteMany({})
 .then(() => console.log('Deleted all user data'))
 .catch((err) => console.log('Error deleting users:', err));
 
+// delets turn object
 Turn.deleteMany({})
 .then(() => {
   console.log('Deleted all turn data');
@@ -106,6 +108,10 @@ app.get('/favicon.ico', (req, res) => {
 const wss = new WebSocket.Server({ port: 3080 });
 const clients = new Set();
 
+/*
+purpose: function to broadcast when user connects or disconnects
+returns: resulting message string
+*/
 wss.on('connection', (ws) => {
   console.log('Client connected');
   clients.add(ws);
@@ -155,23 +161,10 @@ function doesUserHaveSession(user){
   return false;
 }
 
-/**
- * cleans up user session causing session time out
- * 
- * var obj = { first: "John", last: "Doe" };
- * for (const key of Object.keys(obj)) {
-    console.log(key, obj[key]);
-    
-}
-
-var thisIsObject= {
-   'Cow' : 'Moo',
-   'Cat' : 'Meow',
-   'Dog' : 'Bark'
-};
-
-delete thisIsObject["Cow"];
- */
+/*
+purpose: removes sessions that are over the session length
+returns: none
+*/
 function cleanupSessions () {
   let currentTime = Date.now();
   for (i in sessions) {
@@ -207,6 +200,10 @@ function authenticate(req, res, next){
 }
 
 
+/*
+purpose: resets the users session and session info using cookies
+returns: none
+*/
 function resetUserLoginSession(req, res){
   console.log("resetting login session");
   let loginCookie = req.cookies.login;
@@ -222,6 +219,13 @@ function resetUserLoginSession(req, res){
 }
 ////////////////////// END of SESSION CONTROL/////////////////////////////////
 
+
+
+/*
+purpose: gets a list of all of the card objects in the db
+param: none
+sends: list containing the cards
+*/
 app.get('/get/cards/', (req, res) => {
   Card.find({}).exec()
   .then((cards) => {
@@ -233,9 +237,11 @@ app.get('/get/cards/', (req, res) => {
 });
 
 
-/**
- * Checks if every user is ready
- */
+/*
+purpose: checks to see if all players have readied up
+param: none
+sends: true or false, whether or not the game is ready to start
+*/
 app.get('/isReady/', (req, res) => {
   let isReady = 'true';
 
@@ -267,9 +273,11 @@ app.get('/isReady/', (req, res) => {
 });
 
 
-/**
- * Set user to ready
- */
+/*
+purpose: designates the given user to be ready by setting status to 'R'
+URLparam: :username the username of the player to ready up
+returns: resulting message string
+*/
 app.get('/set/ready/:username', (req, res) => {
   let u = req.params.username;
   User.findOne({username: u}).exec()
@@ -285,9 +293,11 @@ app.get('/set/ready/:username', (req, res) => {
   });
 });
 
-/**
- * Set user to ready
- */
+/*
+purpose: sends username of player given assigned userID
+URLparam: :userID of player to search for
+sends: username of player
+*/
 app.get('/get/username/:userID', (req, res) => {
   let u = parseInt(req.params.userID);
   User.findOne({id: u}).exec()
@@ -300,9 +310,11 @@ app.get('/get/username/:userID', (req, res) => {
     });
 });
 
-/**
- * Set user to ready
- */
+/*
+purpose: sends username of player given assigned userID
+URLparam: :userID of player to search for
+sends: username of player
+*/
 app.get('/get/userID/:username', (req, res) => {
   let u = req.params.username;
   console.log("Username: " + u + " clicked Roll Dice.");
@@ -317,9 +329,11 @@ app.get('/get/userID/:username', (req, res) => {
     });
 });
 
-/**
- * Set user to ready
- */
+/*
+purpose: increments turn object to represent the next turn
+URLparam: :turnID represents ID of current players turn
+sends: result message
+*/
 app.get('/update/turn/:turnID', (req, res) => {
   let playersTurn = req.params.turnID;
   Turn.findOne({}).exec()
@@ -343,18 +357,11 @@ app.get('/update/turn/:turnID', (req, res) => {
     });
 });
 
-// /**
-//  * Set user to ready
-//  */
-// app.get('/getPlayers', (req, res) => {
-//   User.find({}).exec()
-//   .then((results) => {res.end(JSON.stringify(results));})
-//   .catch((err) => {console.log("Cant get users list");})
-// });
-
-/**
- * get card object using cardID
- */
+/*
+purpose: sends card object from db based on gived cardID
+URLparam: :cardID of card we are looking for
+sends: card object found from mongoDB
+*/
 app.get('/get/property/:cardID', (req, res) => {
   console.log("enter get prop");
   const cardID = parseInt(req.params.cardID);
@@ -372,9 +379,11 @@ app.get('/get/property/:cardID', (req, res) => {
 });
 
 
-/**
- * get card objects that belong to a given player
- */
+/*
+purpose: sends list of properties owned given a playerID
+URLparam: :userID of player to search for
+sends: list of properties owned by player
+*/
 app.get('/get/properties/:playerID', (req, res) => {
   console.log("sending player properties");
   resetUserLoginSession(req, res);
@@ -408,7 +417,10 @@ app.get('/get/properties/:playerID', (req, res) => {
   });
 });
 
-
+/*
+purpose: sends all player objects from mongodb
+sends: list of players
+*/
 async function getAllPlayers(){
   return User.find({}).exec()
   .then((results) => {
@@ -419,8 +431,14 @@ async function getAllPlayers(){
     return null;
   });
 }
+
 /**
- * updates player obj and card obj with new balance, and updates listOfCardsOwned, and ownerID in Card obj
+ * purpose: updates player obj and card obj with new balance,
+ *  and updates listOfCardsOwned, and ownerID in Card obj
+ * param: :playerID of player's balance to update
+ * param: :newBalance of given player
+ * param: :cardID of the card that was bought
+ * sends: result message
  */
 app.get('/update/pac/:playerID/:newBalance/:cardID', async (req, res) => {
   console.log("enter update player and card");
@@ -497,9 +515,13 @@ app.get('/update/pac/:playerID/:newBalance/:cardID', async (req, res) => {
   })
 });
 
-/**
- * 
- */
+/*
+purpose: updates balance of renter and visitor
+URLparam: :to playerID of owner of property
+URLparam: :from playerID of visotor of property
+URLparam: :rent amount of money transfered
+sends: result message
+*/
 app.get('/update/balance/:to/:from/:rent', (req, res) => {
   const toID = parseInt(req.params.to);
   const fromID = parseInt(req.params.from);
@@ -533,9 +555,11 @@ app.get('/update/balance/:to/:from/:rent', (req, res) => {
   });
 });
 
-/**
- * Sends usercolor back to the client
- */
+/*
+purpose: sends user's color back to client
+URLparam: :userID of player to search for
+sends: string: color of player
+*/
 app.get('/get/user_color/:username', (req, res) => {
   let u = req.params.username;
   console.log(u);
@@ -549,9 +573,11 @@ app.get('/get/user_color/:username', (req, res) => {
   });
 });
 
-/**
- * Sends usercolor back to the client
- */
+/*
+purpose: gives 200 dollars to player who passes go
+URLparam: :userID of player to search for
+sends: result message
+*/
 app.get('/update/balance/go/:userID', (req, res) => {
   let u = req.params.userID;
   User.findOne({id: u}).exec()
@@ -579,7 +605,11 @@ app.get('/update/balance/go/:userID', (req, res) => {
 });
 
 
-//  Sends a list of players to the clients
+/*
+purpose: sends list of players back to client
+URLparam: none
+sends: list of players
+*/
 app.get('/get/players', (req, res) => {
   // console.log('Sending all players');
   let p1 = User.find({}).exec()
@@ -592,6 +622,11 @@ app.get('/get/players', (req, res) => {
   });
 });
 
+/*
+purpose: sends current turn object back to client
+URLparam: none
+sends: object representing current players turn
+*/
 app.get('/get/turn/', (req, res) => {
   resetUserLoginSession(req, res);
   Turn.findOne().exec()
@@ -608,8 +643,11 @@ app.get('/get/turn/', (req, res) => {
     });
 });
 
-
-//  updates player data based on local changes
+/*
+purpose: updates current turn objct
+URLparam: none
+sends: result message
+*/
 app.post('/update/turn', (req, res) => {
   console.log('updating turn data in the db');
   // console.log(req.body);
@@ -622,6 +660,13 @@ app.post('/update/turn', (req, res) => {
   
 });
 
+
+/*
+purpose: updates the given user to the given location in mongoDB
+URLparam: userID of player to update
+URLparam: new location of the player
+sends: result message
+*/
 app.get('/update/location/:userID/:location', async (req, res) => {
   console.log("enter update location");
   const userID = parseInt(req.params.userID);
@@ -664,6 +709,12 @@ const user_colors = ['red', 'blue', 'green', 'yellow'];
 
 //  (POST) Should add a user to the database. The username and password should be sent as POST parameter(s).
 const myPattern = /(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+}{:;'\"?><,./\[\]\\|\-=]).{5,}/;
+
+/*
+purpose: adds user object to mongoDB after signed up
+URLparam: none
+sends: result message
+*/
 app.post('/add/user/', (req, res) => {
   if (user_Id > 3){
     res.end("max limit reached");
@@ -708,7 +759,13 @@ app.post('/add/user/', (req, res) => {
   })
 
 })
-// authenticates the user login 
+
+/*
+purpose: authenticates the user login to see if users correctly signed in
+URLparam: username given by user
+URLparam: password given by user
+sends: result message
+*/
 app.get('/account/login/:USERNAME/:PASSWORD', (req, res) => {
   let u = req.params.USERNAME;
   let p = req.params.PASSWORD;
@@ -753,6 +810,12 @@ app.get('/account/login/:USERNAME/:PASSWORD', (req, res) => {
   }))
 });
 
+
+/*
+purpose: creates list of properties and saves each to mongoDB
+param: none
+returns: none
+*/
 function createAllCards(){
   console.log('Recreating all the cards');
   let cardData = [
@@ -810,7 +873,7 @@ function createAllCards(){
 
 }
 
-// delete all documents from the 'User' collection
+// delete all documents from the 'Card' collection
 Card.deleteMany({})
 .then(() => {
   console.log('Deleted all cards');
