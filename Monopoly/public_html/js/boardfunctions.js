@@ -11,6 +11,12 @@ var oldLocs = []
 let gameEnded = false;
 let winner = null;
 
+/*
+purpose: sets the metadata when the page is loaded. sets the global variables and
+constants needed by the client and displays the original game state.
+params: none
+return: none
+*/
 async function setMetaData(){
     const playerList = await getPlayerList();
     const playerCount = getPlayerCount(playerList);
@@ -21,7 +27,11 @@ async function setMetaData(){
     updatePlayersTurnDisplay();
 
 }
-//////////////////////////////////////////////
+
+/*
+Socket created and listens for updates to turn, players, and cards
+has cases for updating balances, paying rent, moving after dice roll, etc.
+*/
 const socket = new WebSocket('ws://localhost:3080');
 socket.addEventListener('open', function (event) {
     console.log('WebSocket connection established');
@@ -62,16 +72,21 @@ socket.addEventListener('open', function (event) {
     }
   });
   
+  //closes socket
   socket.addEventListener('close', function (event) {
     console.log('WebSocket connection closed');
   });
 
-//   socket.onmessage = (event) => {
-//     console.log(event.data);
-//   };
+
 
 /////////////////////////////////////////////
 
+/*
+purpose: checks if game is over by seeing if only one player has a
+positive balance and changes the html to display game over message.
+params: players: the list of players
+return: none
+*/
 async function isGameOver(players){
     let gameOver = true;
     let count = 0;
@@ -95,6 +110,12 @@ async function isGameOver(players){
 
 }
 
+/*
+purpose: Updates the log by adding the most recent action to the list
+and updating it
+params: newLog: th element representing the addition to the log
+return: none
+*/
 function updateLog(newLog){
     // Create a new p element with the newLog text
     const newLogElement = document.createElement('p');
@@ -104,12 +125,17 @@ function updateLog(newLog){
     document.getElementById('game-log').appendChild(newLogElement);
   }
 
-
-  let pList = ["index 0"];
-  let newLoc = 0;
-  
-
+//set global variables
+let pList = ["index 0"];
+let newLoc = 0; 
 let tList = [];
+
+/*
+purpose: checks if game is over by seeing if only one player has a
+positive balance and changes the html to display game over message.
+params: players: the list of players
+return: none
+*/
 async function fetchCardsFromServer(){
     const cards = await fetch(IP_ADDRESS + 'get/cards/');
     const data = await cards.json();
@@ -143,6 +169,11 @@ p.then(response => {
 //setInterval(updateTurn, 2000);
 
  
+/*
+purpose: fetches the id turn from the server
+params: none
+return: the integer representing the turn id
+*/
 function fetchTurnFromServer(){
     // console.log('fetching turn info');
     return fetch('/get/turn')
@@ -163,7 +194,11 @@ function fetchTurnFromServer(){
 
 
 
-
+/*
+purpose: gets player object of given playerIID
+params: id of player searching for
+return: player object
+*/
 function getPlayerById(id){
     if(pList.length <= 1){
         console.log('player list is emplty');
@@ -180,9 +215,11 @@ function getPlayerById(id){
 }
 
 
-/**
- * sends the updated player data to the server
- */
+/*
+purpose: sends the updated player data to the server
+params: none
+return: none
+*/
 function updatePlayers(){
     // console.log('sending player data to the server')
     let url = '/update/players';   
@@ -218,9 +255,11 @@ function updatePlayers(){
 
 
 
-/**
- * sends the updated card data to the server
- */
+/*
+purpose: sends the updated card data to the server
+params: none
+return: none
+*/
 function updateCards(){
     let url = '/update/cards';
 
@@ -247,26 +286,36 @@ function updateCards(){
 
 //setInterval(updateCards, 2000);
   
+/*
+purpose: locally adjusts user and card data to represent client buying property
+currenty located at
+params: none
+return: none
+*/
+function buyProp(){
+if (tList[newLoc].owner == 0 && tList[newLoc].price > 0){
+    pList[curPlayersTurn].money = pList[curPlayersTurn].money - tList[newLoc].price;
+    var moneyString = "p"+curPlayersTurn.toString()+"money";
+    console.log(moneyString)
+    document.getElementById(moneyString).innerText = pList[curPlayersTurn].money
+    tList[newLoc].owner = curPlayersTurn;
+    var displayString = "p"+curPlayersTurn.toString()+"props";
+    var propString = " " + newLoc.toString()
+    document.getElementById(displayString).innerText += propString
 
-  function buyProp(){
-    if (tList[newLoc].owner == 0 && tList[newLoc].price > 0){
-        pList[curPlayersTurn].money = pList[curPlayersTurn].money - tList[newLoc].price;
-        var moneyString = "p"+curPlayersTurn.toString()+"money";
-        console.log(moneyString)
-        document.getElementById(moneyString).innerText = pList[curPlayersTurn].money
-        tList[newLoc].owner = curPlayersTurn;
-        var displayString = "p"+curPlayersTurn.toString()+"props";
-        var propString = " " + newLoc.toString()
-        document.getElementById(displayString).innerText += propString
+}
+else {
+    console.log("property cannot be bought")
+}
+console.log("porp bot")
 
-    }
-    else {
-        console.log("property cannot be bought")
-    }
-    console.log("porp bot")
-    
 }
 
+/*
+purpose: calls increment turn function and to move to next turn properly
+params: none
+return: none
+*/
 function incrementTurnPromise() {
     return new Promise(resolve => {
       incrementTurn();
@@ -274,6 +323,12 @@ function incrementTurnPromise() {
     });
   }
 
+/*
+purpose: function that runs on click of rolldice button to call functions that
+represent a players turn
+params: none
+return: none
+*/
 async function rollDice(){
     // disable roll dice button
     document.getElementById("roll_dice_btn").disabled = true;
@@ -333,17 +388,22 @@ async function rollDice(){
 }
 
 
+/*
+purpose: updates the balance of player given ID when passing go
+params: ID of player to update balances
+return: none
+*/
 function collectGo(userID) {
   fetch(IP_ADDRESS + 'update/balance/go/' + userID)
   .then((response) => {return response.text();})
   .catch((err) => {console.log("ERROR: adding money from passing go")})
 }
 
-/**
- * Fetches the JSON card OBJ
- * @param {} index 
- * @returns 
- */
+/*
+purpose: returns card object matching given index
+params: index of card searching for
+return: property object based on grid index (cardID)
+*/
 function getProperty(index){
     return fetch(IP_ADDRESS + 'get/property/' + index)
     .then((response) => {return response.text();})
@@ -354,8 +414,8 @@ function getProperty(index){
 
 /**
  * Checks if property is available and for sale and allows user to buy prop or pay rent
- * @param {*} player 
- * @param {*} newLocation 
+ * @param {*} player player whos turn it is
+ * @param {*} newLocation new location player has moved to
  * @returns {Promise<boolean>} resolves to true if the user chooses to buy the property, false otherwise
  */
 async function checkProperty(player, newLocation) {
@@ -420,7 +480,13 @@ async function checkProperty(player, newLocation) {
   }
 
 
-function getRent(prop){
+  /*
+purpose: returns rent of given property depending of if made into
+a monopoly yet
+params: property object seraching for rent
+return: number reprenting amount of dollars owed
+*/
+  function getRent(prop){
     // checks if there is a monopoly
     if (prop.hasSet){
         return prop.rent*3;
@@ -428,6 +494,14 @@ function getRent(prop){
     return prop.rent;
 }
     
+/*
+purpose: updates player and card after just buying property and sending
+information back to server
+params: playerID of buyer
+params: newBalance of buyer after buying property
+paramsL proertyID of property just purchased
+return: resulting message
+*/
 function updatePlayerAndCard(playerID, newBalance, propertyID){
     fetch(IP_ADDRESS + 'update/pac/' + playerID + '/' + newBalance + '/' + propertyID)
     .then((response) => {return response.text();})
@@ -437,14 +511,27 @@ function updatePlayerAndCard(playerID, newBalance, propertyID){
 
 
 
+/*
+purpose: function that stalls program so other players cant roll dice while player
+decides if they will buy property or not
+params: button1 and button2, representing yes and no buttons
+return: awaited promies object
+*/
 function waitForClick(buttonId1, buttonId2) {
     return new Promise(resolve => {
         const button1 = document.getElementById(buttonId1);
         const button2 = document.getElementById(buttonId2);
         button1.addEventListener('click', () => resolve(button1), { once: true });
         button2.addEventListener('click', () => resolve(button2), { once: true });
-    });}
+    });
+    }
 
+    /*
+purpose: updates new location of player in mongodb
+params: myID: id of curren player
+params: newLocation: new location of player
+return: resulting text message
+*/
 async function updatePlayerLocation(myID, newLocation){
     fetch(IP_ADDRESS + 'update/location/' + myID + '/' + newLocation)
     .then((response) => {return response.text();})
@@ -453,6 +540,13 @@ async function updatePlayerLocation(myID, newLocation){
 }
 
 
+/*
+purpose: recursive function hat increments turn and sends turn object back to server
+params: val number of players still in game
+params: playerCount: number of players
+params: playerList: list of players
+return: text response
+*/
 async function postTurnValue(val, playerCount, playerList){
     if (val >= playerCount){
         val = 0;
@@ -469,9 +563,11 @@ async function postTurnValue(val, playerCount, playerList){
     .catch((err) => {console.log("cant update player turn")})
 }
 
-/**
- * Get username from URL and returns it
- */
+/*
+purpose: Get username from URL and returns it
+params: none
+return: string representing username from url
+*/
 function getUsername() {
     const urlParams = new URLSearchParams(window.location.search);
     let username = urlParams.get('username');
@@ -487,6 +583,11 @@ async function fetchClientIDFromServer(username){
 }
 
 
+/*
+purpose: displays everyones new location on board
+params: players list of players
+return: none
+*/
 async function displayNewLocation(players){
     console.log("should display everyones location")
     var [newLocs, colors] = await generateNewLocs(players);
@@ -520,6 +621,11 @@ async function displayNewLocation(players){
 
 }
 
+/*
+purpose: generates list of player locations to pass into other function
+params: list representing old locations
+return: list containg new locations list and list of players colors
+*/
 async function generateNewLocs(list){
     if(list === null){
         list = await getPlayerList();
@@ -537,16 +643,22 @@ async function generateNewLocs(list){
 
 
 
+/*
+purpose: calls incrementPlayerNum function
+params: none
+return: none
+*/
 function incrementTurn(){
     incrementPlayerNum();
-    //while (pList[playersTurn].money <= 0){
-     //   incrementPlayerNum();
-    //}
-    //document.getElementById("pTurn").innerText = playersTurn
+    //add more later
 }
 
 
-
+/*
+purpose: calculates new players turn using modulus
+params: none
+return: none
+*/
 function incrementPlayerNum(){
     playersTurn += 1
     if (playersTurn > getPlayerCount()){
@@ -555,6 +667,11 @@ function incrementPlayerNum(){
     //.log(playersTurn);
 }
 
+/*
+purpose: fetch username from server given userID
+params: userID of player seraching for
+return: none
+*/
 function fetchUsernameFromServer(userId) {
     return new Promise((resolve, reject) => {
       fetch(IP_ADDRESS + 'get/username/' + userId)
@@ -564,6 +681,12 @@ function fetchUsernameFromServer(userId) {
     });
   }
   
+
+/*
+purpose: Updatse turn display on board to represent whos turn it is
+params: none
+return: none
+*/
   async function updatePlayersTurnDisplay() {
     try {
       var turnID = await fetchTurnFromServer();
@@ -579,19 +702,36 @@ function fetchUsernameFromServer(userId) {
 
 // setInterval(updatePlayersTurnDisplay, 1000);
 
+/*
+purpose: returns length of list
+params: list
+return: integer
+*/
 function getPlayerCount(list) {
     return list ? list.length : 0; // Check if list is defined before accessing its length property
   }
   
 
+  /*
+purpose: Get playerList from server
+params: none
+return: list of players
+*/
 function getPlayerList() {
     return fetch(IP_ADDRESS + 'get/players')
       .then((response) => response.text())
       .then((text) => JSON.parse(text))
       .catch((err) => console.log("Can't get players list from server."));
   }
-  
 
+
+
+
+/*
+purpose: Get playerslist from server
+params: none
+return: player list
+*/
 async function getPlayers(){
     let url = 'get/players';
     const properties = await fetch(IP_ADDRESS + url);
@@ -599,10 +739,11 @@ async function getPlayers(){
     return data;
 }
 
+
 /**
  * Fetches the JSON card objs that belongs to a given player
- * @param {} index 
- * @returns 
+ * @param {} player to search for
+ * @returns list of properties
  */
 async function getPlayerProperties(playerID){
     let url = IP_ADDRESS + 'get/properties/';
@@ -612,6 +753,11 @@ async function getPlayerProperties(playerID){
 }
 
 
+/*
+purpose: adds the functinoality to the show properties button to show each players list of properties
+params: list of propertires to displat
+return: none
+*/
 function createPropertiesWindow(properties){
     let propertiesWindow = document.getElementById('property-data-popup');
     propertiesWindow.innerHTML = '<div class="close-button" id="close-property-window">&times;</div>';
@@ -644,9 +790,11 @@ function createPropertiesWindow(properties){
     propertiesWindow.appendChild(cardList);
 }
 
-/**
- * Updates the board.html with player information from the server
- */
+/*
+purpose: displaye player information for each player
+params: list of players
+return: none
+*/
 async function displayPlayers(items){
     console.log(items);
     if(items === null){
@@ -695,14 +843,18 @@ async function displayPlayers(items){
         }
         
     });
+}
 
 
 // displays property information
 const showButtons = document.querySelectorAll('.show-properties');
 const propertyData = document.querySelector('#property-data-popup');
 
-let isWindowVisible = false; // Keep track of popup visibility state
-
+    /*
+purpose: inner function to toggle whether properties are show or not
+params: id of player window
+return: none
+*/
 async function togglePropertyWindow(id) {
     console.log('id: '+id);
     let properties = await getPlayerProperties(id);
@@ -711,36 +863,41 @@ async function togglePropertyWindow(id) {
     isWindowVisible = !isWindowVisible; // Toggle the visibility state
     propertyData.classList.toggle('visible', isWindowVisible); // Toggle the 'visible' class based on state
 
-    const closePropertyData = document.querySelector('#close-property-window');
-    closePropertyData.addEventListener('click', closePropertyWindow);
 }
 
-
+/*
+purpose: closes the property window
+params: none
+return: none
+*/
 function closePropertyWindow(){
     isWindowVisible = !isWindowVisible; // Toggle the visibility state
     propertyData.classList.toggle('visible', isWindowVisible); // Toggle the 'visible' class based on state
 }
 
-showButtons.forEach(button => {
-    button.addEventListener('click', event => {
-        const id = event.target.id;
-        togglePropertyWindow(id);
-    });
-})
-
-
-}
 
 
 
 
 
 
+/*
+purpose: grabs the params from the url 
+params: none
+return: the params as a string
+*/
 function getCurrentUrlSearchParams(){
     const queryString = window.location.search;
     return new URLSearchParams(queryString);
 }
 
+
+/*
+purpose: returns the player object associated with the given username
+param: players: list representing users
+param: username, the username to serach for
+return: the integer representing the turn id
+*/
 function findUserName(players, username){
     let object = [];
     for(let i=0; i< players.length; i++){
@@ -753,7 +910,11 @@ function findUserName(players, username){
 }
 
 
-
+/*
+purpose: displaus the help page
+params: none
+return: none
+*/
 function helpPage(){
     window.location.href = '../help.html';
 }
