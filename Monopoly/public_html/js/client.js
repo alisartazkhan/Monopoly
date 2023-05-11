@@ -4,7 +4,7 @@
  * Description: This is the client side that handles the user login.
  */
 
-const hostname = '137.184.216.183'
+const hostname = 'localhost'
 const port = 3000;
 
 /**
