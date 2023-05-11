@@ -8,7 +8,7 @@ needs locally. It also contains all the logic for buying properties and moving a
 locally, and then sends the changes to the server to update.
 */
 
-var IP_ADDRESS = 'http://137.184.216.183:3000/';
+var IP_ADDRESS = 'http://localhost:3000/';
 var oldLocs = []
 let gameEnded = false;
 let winner = null;
