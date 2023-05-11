@@ -21,7 +21,7 @@ const cookieParser = require('cookie-parser');
 const crypto = require('crypto');
 const WebSocket = require('ws'); // used to send messages to clients
 
-const hostname = '137.184.216.183';
+const hostname = 'localhost';
 const port = 3000;
 const app = express();
 app.use(cookieParser());
