@@ -3,7 +3,7 @@
 
 ## How to run the game
 - Run `node server.js` on the command line to run start the server.
-- Open your browser and go to `localhost:5000`.
+- Open your browser and go to `localhost:3000`.
 - Make sure mongoDB Compass is installed.
 
 ## SignUp
